@@ -7,6 +7,8 @@
 
 __author__ = "Andres FR"
 
+from os.path import basename
+#
 import bpy
 from mathutils import Vector  # , Euler  # mathutils is a blender package
 #
@@ -16,6 +18,13 @@ from .mvnx import Mvnx
 # #############################################################################
 # ## GLOBALS
 # #############################################################################
+
+
+#  Indeed, examining a short sequence in both BVH and MVNX formats shows that there are some similarities, but they have been pretty obfuscated: the BVH skeleton definition is pretty clear, e.g. Hips->Chest with offset (0.000000 11.495990 -0.022047), propagating to Chest2 with offset (0.000000 9.325056 0.040047). When examining the MVNX we see that the segment Pelvis has a "point" called "jL5S1" with <pos_b>-0.000220 0.000000 0.114960</pos_b>, and further down the segment "L5" has a point called "jL4L3" with <pos_b>0.000400 0.000000 0.093251</pos_b>.
+
+# Hence we can see that the offsets are basically the same but zxy instead of xyz, in meters and rounded down, and the hierarchy has different names and structure.
+
+
 
 
 # #############################################################################
@@ -37,9 +46,67 @@ def load_mvnx_into_blender(
         # update_scene_duration=False,
         report=print):
 
+    mvnx_filename = basename(filepath)
     mvnx = Mvnx(filepath, mvnx_schema_path)
-    print(mvnx)
+    frames_metadata, config_frames, normal_frames = mvnx.extract_frame_info()
+    segments = {i: s for i, s
+                in enumerate(mvnx.mvnx.subject.segments.iterchildren())}
+    num_segments = len(segments)
+    # num_sensors = frames_metadata["sensorCount"]
+    # num_joints = frames_metadata["jointCount"]
+    # num_frames = len(normal_frames)
+    tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
 
+    # extract orientations and positions from normal frames
+    orientations, positions = [], []  # list of lists (frame->segment)
+    for f in normal_frames:
+        fo, fp = f["orientation"], f["position"]
+        orientations.append([fo[i:i + 4]
+                             for i in range(0, 4 * num_segments, 4)])
+        positions.append([fp[i:i + 3] for i in range(0, 3 * num_segments, 3)])
+    print([len(x) for x in orientations], len(orientations))
+    print([len(x) for x in positions], len(positions))
+
+
+
+
+
+
+    
+    ### SANDBOX
+
+
+    # TODO: 1. create the armature for the skeleton analogously to the BVH, in tpose
+    # 2. create the keyframes and fill them with the quaternions, analogously to the BVH.
+    # 3. details like rescaling, more UI, TIME PRECISION...
+    
+
+    bpy.ops.object.select_all(action='DESELECT')
+    arm_data = bpy.data.armatures.new(mvnx_filename)
+    arm_ob = bpy.data.objects.new(mvnx_filename, arm_data)
+
+    for i in range(num_segments):
+        seg = segments[i]
+        print(seg.attrib["label"], seg.attrib["id"], seg.points)
+
+    #     context.collection.objects.link(arm_ob)
+    #     arm_ob.select_set(True)
+    #     context.view_layer.objects.active = arm_ob
+    #     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    #     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    #     bvh_nodes_list = sorted_nodes(bvh_nodes)
+
+
+
+    ### END OF SANDBOX
+    ###
+
+
+
+
+
+
+    
     # import time
     # t1 = time.time()
     # print("\tparsing bvh %r..." % filepath, end="")
@@ -110,3 +177,262 @@ def load_mvnx_into_blender(
     # print('Done in %.4f\n' % (time.time() - t1))
 
     # context.scene.frame_set(frame_orig)
+
+
+
+
+
+
+
+
+
+
+# def bvh_node_dict2armature(
+#         context,
+#         bvh_name,
+#         bvh_nodes,
+#         bvh_frame_time,
+#         rotate_mode='XYZ',
+#         frame_start=1,
+#         IMPORT_LOOP=False,
+#         global_matrix=None,
+#         use_fps_scale=False,
+# ):
+
+#     if frame_start < 1:
+#         frame_start = 1
+
+#     # Add the new armature,
+#     scene = context.scene
+#     for obj in scene.objects:
+#         obj.select_set(False)
+
+#     arm_data = bpy.data.armatures.new(bvh_name)
+#     arm_ob = bpy.data.objects.new(bvh_name, arm_data)
+
+#     context.collection.objects.link(arm_ob)
+
+#     arm_ob.select_set(True)
+#     context.view_layer.objects.active = arm_ob
+
+#     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+#     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+#     bvh_nodes_list = sorted_nodes(bvh_nodes)
+
+#     # Get the average bone length for zero length bones, we may not use this.
+#     average_bone_length = 0.0
+#     nonzero_count = 0
+#     for bvh_node in bvh_nodes_list:
+#         l = (bvh_node.rest_head_local - bvh_node.rest_tail_local).length
+#         if l:
+#             average_bone_length += l
+#             nonzero_count += 1
+
+#     # Very rare cases all bones could be zero length???
+#     if not average_bone_length:
+#         average_bone_length = 0.1
+#     else:
+#         # Normal operation
+#         average_bone_length = average_bone_length / nonzero_count
+
+#     # XXX, annoying, remove bone.
+#     while arm_data.edit_bones:
+#         arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
+
+#     ZERO_AREA_BONES = []
+#     for bvh_node in bvh_nodes_list:
+
+#         # New editbone
+#         bone = bvh_node.temp = arm_data.edit_bones.new(bvh_node.name)
+
+#         bone.head = bvh_node.rest_head_world
+#         bone.tail = bvh_node.rest_tail_world
+
+#         # Zero Length Bones! (an exceptional case)
+#         if (bone.head - bone.tail).length < 0.001:
+#             print("\tzero length bone found:", bone.name)
+#             if bvh_node.parent:
+#                 ofs = bvh_node.parent.rest_head_local - bvh_node.parent.rest_tail_local
+#                 if ofs.length:  # is our parent zero length also?? unlikely
+#                     bone.tail = bone.tail - ofs
+#                 else:
+#                     bone.tail.y = bone.tail.y + average_bone_length
+#             else:
+#                 bone.tail.y = bone.tail.y + average_bone_length
+
+#             ZERO_AREA_BONES.append(bone.name)
+
+#     for bvh_node in bvh_nodes_list:
+#         if bvh_node.parent:
+#             # bvh_node.temp is the Editbone
+
+#             # Set the bone parent
+#             bvh_node.temp.parent = bvh_node.parent.temp
+
+#             # Set the connection state
+#             if(
+#                     (not bvh_node.has_loc) and
+#                     (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
+#                     (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)
+#             ):
+#                 bvh_node.temp.use_connect = True
+
+#     # Replace the editbone with the editbone name,
+#     # to avoid memory errors accessing the editbone outside editmode
+#     for bvh_node in bvh_nodes_list:
+#         bvh_node.temp = bvh_node.temp.name
+
+#     # Now Apply the animation to the armature
+
+#     # Get armature animation data
+#     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+#     pose = arm_ob.pose
+#     pose_bones = pose.bones
+
+#     if rotate_mode == 'NATIVE':
+#         for bvh_node in bvh_nodes_list:
+#             bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
+#             pose_bone = pose_bones[bone_name]
+#             pose_bone.rotation_mode = bvh_node.rot_order_str
+
+#     elif rotate_mode != 'QUATERNION':
+#         for pose_bone in pose_bones:
+#             pose_bone.rotation_mode = rotate_mode
+#     else:
+#         # Quats default
+#         pass
+
+#     context.view_layer.update()
+
+#     arm_ob.animation_data_create()
+#     action = bpy.data.actions.new(name=bvh_name)
+#     arm_ob.animation_data.action = action
+
+#     # Replace the bvh_node.temp (currently an editbone)
+#     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
+#     num_frame = 0
+#     for bvh_node in bvh_nodes_list:
+#         bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
+#         pose_bone = pose_bones[bone_name]
+#         rest_bone = arm_data.bones[bone_name]
+#         bone_rest_matrix = rest_bone.matrix_local.to_3x3()
+
+#         bone_rest_matrix_inv = Matrix(bone_rest_matrix)
+#         bone_rest_matrix_inv.invert()
+
+#         bone_rest_matrix_inv.resize_4x4()
+#         bone_rest_matrix.resize_4x4()
+#         bvh_node.temp = (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
+
+#         if 0 == num_frame:
+#             num_frame = len(bvh_node.anim_data)
+
+#     # Choose to skip some frames at the beginning. Frame 0 is the rest pose
+#     # used internally by this importer. Frame 1, by convention, is also often
+#     # the rest pose of the skeleton exported by the motion capture system.
+#     skip_frame = 1
+#     if num_frame > skip_frame:
+#         num_frame = num_frame - skip_frame
+
+#     # Create a shared time axis for all animation curves.
+#     time = [float(frame_start)] * num_frame
+#     if use_fps_scale:
+#         dt = scene.render.fps * bvh_frame_time
+#         for frame_i in range(1, num_frame):
+#             time[frame_i] += float(frame_i) * dt
+#     else:
+#         for frame_i in range(1, num_frame):
+#             time[frame_i] += float(frame_i)
+
+#     # print("bvh_frame_time = %f, dt = %f, num_frame = %d"
+#     #      % (bvh_frame_time, dt, num_frame]))
+
+#     for i, bvh_node in enumerate(bvh_nodes_list):
+#         pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
+
+#         if bvh_node.has_loc:
+#             # Not sure if there is a way to query this or access it in the
+#             # PoseBone structure.
+#             data_path = 'pose.bones["%s"].location' % pose_bone.name
+
+#             location = [(0.0, 0.0, 0.0)] * num_frame
+#             for frame_i in range(num_frame):
+#                 bvh_loc = bvh_node.anim_data[frame_i + skip_frame][:3]
+
+#                 bone_translate_matrix = Matrix.Translation(
+#                     Vector(bvh_loc) - bvh_node.rest_head_local)
+#                 location[frame_i] = (bone_rest_matrix_inv @
+#                                      bone_translate_matrix).to_translation()
+
+#             # For each location x, y, z.
+#             for axis_i in range(3):
+#                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
+#                 keyframe_points = curve.keyframe_points
+#                 keyframe_points.add(num_frame)
+
+#                 for frame_i in range(num_frame):
+#                     keyframe_points[frame_i].co = (
+#                         time[frame_i],
+#                         location[frame_i][axis_i],
+#                     )
+
+#         if bvh_node.has_rot:
+#             data_path = None
+#             rotate = None
+#             if 'QUATERNION' == rotate_mode:
+#                 rotate = [(1.0, 0.0, 0.0, 0.0)] * num_frame
+#                 data_path = ('pose.bones["%s"].rotation_quaternion'
+#                              % pose_bone.name)
+#             else:
+#                 rotate = [(0.0, 0.0, 0.0)] * num_frame
+#                 data_path = ('pose.bones["%s"].rotation_euler' %
+#                              pose_bone.name)
+
+#             prev_euler = Euler((0.0, 0.0, 0.0))
+#             for frame_i in range(num_frame):
+#                 bvh_rot = bvh_node.anim_data[frame_i + skip_frame][3:]
+
+#                 # apply rotation order and convert to XYZ
+#                 # note that the rot_order_str is reversed.
+#                 euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
+#                 bone_rotation_matrix = euler.to_matrix().to_4x4()
+#                 bone_rotation_matrix = (
+#                     bone_rest_matrix_inv @
+#                     bone_rotation_matrix @
+#                     bone_rest_matrix
+#                 )
+
+#                 if len(rotate[frame_i]) == 4:
+#                     rotate[frame_i] = bone_rotation_matrix.to_quaternion()
+#                 else:
+#                     rotate[frame_i] = bone_rotation_matrix.to_euler(
+#                         pose_bone.rotation_mode, prev_euler)
+#                     prev_euler = rotate[frame_i]
+
+#             # For each euler angle x, y, z (or quaternion w, x, y, z).
+#             for axis_i in range(len(rotate[0])):
+#                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
+#                 keyframe_points = curve.keyframe_points
+#                 keyframe_points.add(num_frame)
+
+#                 for frame_i in range(num_frame):
+#                     keyframe_points[frame_i].co = (
+#                         time[frame_i],
+#                         rotate[frame_i][axis_i],
+#                     )
+
+#     for cu in action.fcurves:
+#         if IMPORT_LOOP:
+#             pass  # 2.5 doenst have cyclic now?
+
+#         for bez in cu.keyframe_points:
+#             bez.interpolation = 'LINEAR'
+
+#     # finally apply matrix
+#     arm_ob.matrix_world = global_matrix
+#     bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+
+#     return arm_ob
+
