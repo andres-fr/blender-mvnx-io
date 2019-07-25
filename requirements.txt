@@ -1,0 +1,11 @@
+flake8
+coverage
+snakeviz
+memory_profiler
+sphinx
+sphinx_rtd_theme
+bump2version
+setuptools
+wheel
+twine
+lxml

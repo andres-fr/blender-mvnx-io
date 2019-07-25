@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_anim_mvnx.utils &mdash; io_anim_mvnx 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> io_anim_mvnx
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../io_anim_mvnx.html">io_anim_mvnx package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">io_anim_mvnx</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../io_anim_mvnx.html">io_anim_mvnx</a> &raquo;</li>
+        
+      <li>io_anim_mvnx.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for io_anim_mvnx.utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for interaction with Blender</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">radians</span>  <span class="c1"># degrees</span>
+<span class="c1"># mathutils is a blender package</span>
+<span class="kn">from</span> <span class="nn">mathutils</span> <span class="k">import</span> <span class="n">Euler</span>  <span class="c1"># , Vector</span>
+<span class="c1"># import bpy</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">__path__</span> <span class="k">as</span> <span class="n">PACKAGE_ROOT_PATH</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="make_timestamp"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.make_timestamp">[docs]</a><span class="k">def</span> <span class="nf">make_timestamp</span><span class="p">(</span><span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;Europe/Berlin&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Output example: day, month, year, hour, min, sec, milisecs:</span>
+<span class="sd">    10_Feb_2018_20:10:16.151</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="n">timezone</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">_%b_%Y_%H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">timezone</span><span class="p">)</span></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## ENVIRONMENT</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="resolve_path"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.resolve_path">[docs]</a><span class="k">def</span> <span class="nf">resolve_path</span><span class="p">(</span><span class="o">*</span><span class="n">path_elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A convenience path wrapper to find elements in this package. Retrieves</span>
+<span class="sd">    the absolute path, given the OS-agnostic path relative to the package</span>
+<span class="sd">    root path (by bysically joining the path elements via ``os.path.join``).</span>
+<span class="sd">    E.g., the following call retrieves the absolute path for</span>
+<span class="sd">    ``&lt;PACKAGE_ROOT&gt;/a/b/test.txt``::</span>
+
+<span class="sd">       resolve_path(&quot;a&quot;, &quot;b&quot;, &quot;test.txt&quot;)</span>
+
+<span class="sd">    :params strings path_elements: From left to right, the path nodes,</span>
+<span class="sd">       the last one being the filename.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">PACKAGE_ROOT_PATH</span><span class="p">)</span> <span class="o">+</span> <span class="n">path_elements</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ArgumentParserForBlender"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.ArgumentParserForBlender">[docs]</a><span class="k">class</span> <span class="nc">ArgumentParserForBlender</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is identical to its superclass, except for the parse_args</span>
+<span class="sd">    method (see docstring). It resolves the ambiguity generated when calling</span>
+<span class="sd">    Blender from the CLI with a python script, and both Blender and the script</span>
+<span class="sd">    have arguments. E.g., the following call will make Blender crash because</span>
+<span class="sd">    it will try to process the script&#39;s -a and -b flags:</span>
+<span class="sd">    ::</span>
+
+<span class="sd">       blender --python my_script.py -a 1 -b 2</span>
+
+<span class="sd">    To bypass this issue this class uses the fact that Blender will ignore all</span>
+<span class="sd">    arguments given after a double-dash (&#39;--&#39;). The approach is that all</span>
+<span class="sd">    arguments before &#39;--&#39; go to Blender, arguments after go to the script.</span>
+<span class="sd">    The following CLI calls work fine:</span>
+<span class="sd">    ::</span>
+
+<span class="sd">       blender --python my_script.py -- -a 1 -b 2</span>
+<span class="sd">       blender --python my_script.py --</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ArgumentParserForBlender.get_argv_after_doubledash"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.ArgumentParserForBlender.get_argv_after_doubledash">[docs]</a>    <span class="k">def</span> <span class="nf">get_argv_after_doubledash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argv</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param list&lt;str&gt; argv: Expected to be sys.argv (or alike).</span>
+<span class="sd">        :returns: The argv sublist after the first ``&#39;--&#39;`` element (if</span>
+<span class="sd">           present, otherwise returns an empty list).</span>
+<span class="sd">        :rtype: list of str</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           Works with any *ordered* collection of strings (e.g. list, tuple).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">argv</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># the list after &#39;--&#39;</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># &#39;--&#39; not in the list:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+    <span class="c1"># overrides superclass</span>
+<div class="viewcode-block" id="ArgumentParserForBlender.parse_args"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.ArgumentParserForBlender.parse_args">[docs]</a>    <span class="k">def</span> <span class="nf">parse_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is expected to behave identically as in the superclass,</span>
+<span class="sd">        except that the sys.argv list will be pre-processed using</span>
+<span class="sd">        get_argv_after_doubledash before. See the docstring of the class for</span>
+<span class="sd">        usage examples and details.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           By default, `argparse.ArgumentParser` will call `sys.exit()` when</span>
+<span class="sd">           encountering an error. Blender will react to that shutting down,</span>
+<span class="sd">           making it look like a crash. Make sure the arguments are correct!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">argv_after_dd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argv_after_doubledash</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">argv_after_dd</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## UI CONFIG HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="OperatorToMenuManager"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.OperatorToMenuManager">[docs]</a><span class="k">class</span> <span class="nc">OperatorToMenuManager</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements functionality for adding/removing operators</span>
+<span class="sd">    into Blender UI menus. It also behaves like a regular list, holding</span>
+<span class="sd">    the currently registered items. Usage example:</span>
+<span class="sd">    ::</span>
+
+<span class="sd">       omm = OperatorToMenuManager()</span>
+<span class="sd">       # In register():</span>
+<span class="sd">       omm.register(MyOperator, bpy.types.VIEW3D_MT_object)</span>
+<span class="sd">       # ... in unregister():</span>
+<span class="sd">       omm.unregister</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OperatorToMenuManager.register"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.OperatorToMenuManager.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_class</span><span class="p">,</span> <span class="n">menu_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param bpy.types.Operator op_class: (Sub)class handle with desired</span>
+<span class="sd">           functionality.</span>
+<span class="sd">        :param menu_class: Class handle for the Blender GUI where the</span>
+<span class="sd">           functionality can be triggered.</span>
+<span class="sd">        :type menu_class: bpy.types.{Header, Panel, ...}</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           ``op_class`` must define the ``bl_idname`` and ``bl_label`` fields.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">op_name</span><span class="p">,</span> <span class="n">op_label</span> <span class="o">=</span> <span class="n">op_class</span><span class="o">.</span><span class="n">bl_idname</span><span class="p">,</span> <span class="n">op_class</span><span class="o">.</span><span class="n">bl_label</span>
+
+        <span class="k">def</span> <span class="nf">menu_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Small wrapper needed by the API&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">operator</span><span class="p">(</span><span class="n">op_name</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">op_label</span><span class="p">)</span>
+
+        <span class="n">menu_class</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">menu_fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">menu_class</span><span class="p">,</span> <span class="n">menu_fn</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OperatorToMenuManager.unregister"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.OperatorToMenuManager.unregister">[docs]</a>    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes every mapped operator from every menu class in this collection,</span>
+<span class="sd">        then empties the collection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">menu_class</span><span class="p">,</span> <span class="n">menu_fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">menu_class</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">menu_fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="KeymapManager"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.KeymapManager">[docs]</a><span class="k">class</span> <span class="nc">KeymapManager</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements functionality for registering/deregistering keymaps</span>
+<span class="sd">    into Blender. It also behaves like a regular list, holding the keymaps</span>
+<span class="sd">    currently registered. To inspect the registered keymaps simply iterate</span>
+<span class="sd">    the instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">KEYMAP_NAME</span> <span class="o">=</span> <span class="s2">&quot;Object Mode&quot;</span>  <span class="c1"># ATM not well documented in the API</span>
+    <span class="n">KEYMAP_SPACE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;EMPTY&quot;</span>  <span class="c1"># ATM not well documented in the API</span>
+    <span class="n">KEYMAP_REGION_TYPE</span> <span class="o">=</span> <span class="s2">&quot;WINDOW&quot;</span>  <span class="c1"># ATM not well documented in the API</span>
+
+<div class="viewcode-block" id="KeymapManager.register"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.KeymapManager.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">stroke_mode</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span>
+                 <span class="n">ctrl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new keymap to this collection, and to the config in</span>
+<span class="sd">        ``context.window_manager.keyconfigs.addon``. See the API for details:</span>
+
+<span class="sd">        | https://docs.blender.org/api/blender2.8/bpy.types.KeyMap.html</span>
+<span class="sd">        | https://docs.blender.org/api/blender2.8/bpy.types.KeyMapItem.html</span>
+<span class="sd">        | https://docs.blender.org/manual/de/dev/advanced/keymap_editing.html</span>
+
+<span class="sd">        .. warning:</span>
+<span class="sd">           For the moment, the keymaps were confirmed to work only when the</span>
+<span class="sd">           mouse cursor is on the ``VIEW_3D`` area, and for the parameters</span>
+<span class="sd">           ``name=&quot;Object Mode&quot;, space_type=&quot;EMPTY&quot;``</span>
+
+<span class="sd">        Usage example:</span>
+<span class="sd">        ::</span>
+
+<span class="sd">           kmm = KeymapManager()</span>
+<span class="sd">           kmm.register(bpy.context, &quot;D&quot;, &quot;PRESS&quot;, MyOperator.bl_idname)</span>
+
+<span class="sd">        :param bpy.types.Context context: The Blender context to work in.</span>
+<span class="sd">        :param str key: See bpy.types.KeyMapItem.key_modifier</span>
+<span class="sd">        :param str stroke_mode: See bpy.types.KeyMapItem.value</span>
+<span class="sd">        :param str op_name: Name of a valid operation in ``bpy.ops``</span>
+<span class="sd">           (usually the ``bl_idname``)</span>
+<span class="sd">        :param booleans ctrl, shift, alt: Modifiers of the ``key``</span>
+<span class="sd">        :returns: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wm</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">window_manager</span>
+        <span class="n">kc</span> <span class="o">=</span> <span class="n">wm</span><span class="o">.</span><span class="n">keyconfigs</span><span class="o">.</span><span class="n">addon</span>  <span class="c1"># this is None in background mode</span>
+        <span class="k">if</span> <span class="n">kc</span><span class="p">:</span>
+            <span class="n">km</span> <span class="o">=</span> <span class="n">kc</span><span class="o">.</span><span class="n">keymaps</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">KEYMAP_NAME</span><span class="p">,</span>
+                                <span class="n">space_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">KEYMAP_SPACE_TYPE</span><span class="p">,</span>
+                                <span class="n">region_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">KEYMAP_REGION_TYPE</span><span class="p">)</span>
+            <span class="n">kmi</span> <span class="o">=</span> <span class="n">km</span><span class="o">.</span><span class="n">keymap_items</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">op_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">stroke_mode</span><span class="p">,</span>
+                                      <span class="n">ctrl</span><span class="o">=</span><span class="n">ctrl</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="n">alt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">km</span><span class="p">,</span> <span class="n">kmi</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="KeymapManager.unregister"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.KeymapManager.unregister">[docs]</a>    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes every mapped item from every keymap in this collection, and</span>
+<span class="sd">        then empties the collection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">km</span><span class="p">,</span> <span class="n">kmi</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">km</span><span class="o">.</span><span class="n">keymap_items</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">kmi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## MATH</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="rot_euler_degrees"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.rot_euler_degrees">[docs]</a><span class="k">def</span> <span class="nf">rot_euler_degrees</span><span class="p">(</span><span class="n">rot_x</span><span class="p">,</span> <span class="n">rot_y</span><span class="p">,</span> <span class="n">rot_z</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;XYZ&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param float rot_: Rotation angle in degrees.</span>
+<span class="sd">    :returns: An Euler rotation object with the given rotations (converted to</span>
+<span class="sd">      gradians) and rotation order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Euler</span><span class="p">((</span><span class="n">radians</span><span class="p">(</span><span class="n">rot_x</span><span class="p">),</span> <span class="n">radians</span><span class="p">(</span><span class="n">rot_y</span><span class="p">),</span> <span class="n">radians</span><span class="p">(</span><span class="n">rot_z</span><span class="p">)),</span> <span class="n">order</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

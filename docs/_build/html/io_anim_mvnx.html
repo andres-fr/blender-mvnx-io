@@ -1,0 +1,622 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_anim_mvnx package &mdash; io_anim_mvnx 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to io_anim_mvnx’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> io_anim_mvnx
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">io_anim_mvnx package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.mvnx">io_anim_mvnx.mvnx module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.utils">io_anim_mvnx.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">io_anim_mvnx</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>io_anim_mvnx package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/io_anim_mvnx.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="io-anim-mvnx-package">
+<h1>io_anim_mvnx package<a class="headerlink" href="#io-anim-mvnx-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-io_anim_mvnx.mvnx">
+<span id="io-anim-mvnx-mvnx-module"></span><h2>io_anim_mvnx.mvnx module<a class="headerlink" href="#module-io_anim_mvnx.mvnx" title="Permalink to this headline">¶</a></h2>
+<p>This module contains functionality concerning the adaption of the
+XSENS MVN-XML format into our Python setup.</p>
+<dl class="simple">
+<dt>The official explanation can be found in section 14.4 of this document::</dt><dd><p><a class="reference external" href="https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf">https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</a></p>
+</dd>
+</dl>
+<p>A copy is stored in this repository.</p>
+<p>The following section introduces more informally the contents of the imported
+MVN file and the way they can be accessed from Python:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># MVNX schemata can be found in this package or in
+# https://www.xsens.com/mvn/mvnx/schema.xsd
+mvn_path = &quot;XXX&quot;
+mmvn = Mvnx(mvn_path)
+
+# These elements contain some small metadata:
+mmvn.mvnx.attrib
+mmvn.mvnx.comment.attrib
+mmvn.mvnx.securityCode.attrib[&quot;code&quot;]
+mmvn.mvnx.subject.attrib
+
+# subject.segments contain 3D pos_b labels:
+for ch in mmvn.mvnx.subject.segments.iterchildren():
+    ch.attrib, [p.attrib for p in ch.points.iterchildren()]
+
+# Segments can look as follows: ``[&#39;Pelvis&#39;, &#39;L5&#39;, &#39;L3&#39;, &#39;T12&#39;, &#39;T8&#39;, &#39;Neck&#39;,
+&#39;Head&#39;, &#39;RightShoulder&#39;, &#39;RightUpperArm&#39;, &#39;RightForeArm&#39;, &#39;RightHand&#39;,
+&#39;LeftShoulder&#39;, &#39;LeftUpperArm&#39;, &#39;LeftForeArm&#39;, &#39;LeftHand&#39;, &#39;RightUpperLeg&#39;,
+&#39;RightLowerLeg&#39;, &#39;RightFoot&#39;, &#39;RightToe&#39;, &#39;LeftUpperLeg&#39;, &#39;LeftLowerLeg&#39;,
+&#39;LeftFoot&#39;, &#39;LeftToe&#39;]``
+
+# sensors is basically a list of names
+for s in mmvn.mvnx.subject.sensors.iterchildren():
+    s.attrib
+
+#  Joints is a list that connects segment points:
+for j in mmvn.mvnx.subject.joints.iterchildren():
+    j.attrib[&quot;label&quot;], j.getchildren()
+
+# miscellaneous:
+for j in mmvn.mvnx.subject.ergonomicJointAngles.iterchildren():
+    j.attrib, j.getchildren()
+
+for f in mmvn.mvnx.subject.footContactDefinition.iterchildren():
+    f.attrib, f.getchildren()
+
+# The bulk of the data is in the frames.
+frames_metadata, config_frames, normal_frames = mmvn.extract_frame_info()
+
+# Metadata looks like this:
+{&#39;segmentCount&#39;: &#39;23&#39;, &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}
+
+# config frames have the following fields:
+[&#39;orientation&#39;, &#39;position&#39;, &#39;time&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]
+
+# normal frames have the following fields:
+[&#39;orientation&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;acceleration&#39;,
+ &#39;angularVelocity&#39;, &#39;angularAcceleration&#39;, &#39;footContacts&#39;,
+ &#39;sensorFreeAcceleration&#39;, &#39;sensorMagneticField&#39;, &#39;sensorOrientation&#39;,
+ &#39;jointAngle&#39;, &#39;jointAngleXZY&#39;, &#39;jointAngleErgo&#39;, &#39;centerOfMass&#39;, &#39;time&#39;,
+ &#39;index&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]
+</pre></div>
+</div>
+<p>The following fields contain metadata about the frame:</p>
+<dl class="field-list simple">
+<dt class="field-odd">time</dt>
+<dd class="field-odd"><p>ms since start (integer). It is close to
+<code class="docutils literal notranslate"><span class="pre">int(1000.0</span> <span class="pre">*</span> <span class="pre">index</span> <span class="pre">/</span> <span class="pre">samplerate)</span></code>, being equal most of the times and
+at most 1 milisecond away. It is neither truncated nor rounded, maybe it
+is given by the hardware.</p>
+</dd>
+<dt class="field-even">index</dt>
+<dd class="field-even"><p>starts with 0, +1 each normal frame</p>
+</dd>
+<dt class="field-odd">tc</dt>
+<dd class="field-odd"><p>string like ‘02:23:28:164’</p>
+</dd>
+<dt class="field-even">ms</dt>
+<dd class="field-even"><p>unix timestamp like 1515983008686 (used to compute time)</p>
+</dd>
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>one of “identity”, “tpose”, “tpose-isb”, “normal”</p>
+</dd>
+</dl>
+<p># The following fields are float vectors of the following dimensionality:</p>
+<dl class="field-list simple">
+<dt class="field-odd">orientation</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">segmentCount*4</span> <span class="pre">=</span> <span class="pre">92</span></code> Quaternion vector</p>
+</dd>
+<dt class="field-even">position, velocity, acceleration, angularVelocity, angularAcceleration</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">segmentCount*3</span> <span class="pre">=</span> <span class="pre">69</span></code> 3D vectors in <code class="docutils literal notranslate"><span class="pre">(x,y,z)</span></code> format</p>
+</dd>
+<dt class="field-odd">footContacts</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">4</span></code> 4D boolean vector</p>
+</dd>
+<dt class="field-even">sensorFreeAcceleration, sensorMagneticField</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sensorCount*3</span> <span class="pre">=</span> <span class="pre">51</span></code></p>
+</dd>
+<dt class="field-odd">sensorOrientation</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sensorCount*4</span> <span class="pre">=</span> <span class="pre">68</span></code></p>
+</dd>
+<dt class="field-even">jointAngle, jointAngleXZY</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">jointCount*3</span> <span class="pre">=</span> <span class="pre">66</span></code></p>
+</dd>
+<dt class="field-odd">jointAngleErgo</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">12</span></code></p>
+</dd>
+<dt class="field-even">centerOfMass</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">3</span></code></p>
+</dd>
+</dl>
+<p>The units are SI for position, velocity and acceleration. Angular magnitudes
+are in radians except the <code class="docutils literal notranslate"><span class="pre">jointAngle...</span></code> ones that are in degrees. All 3D
+vectors are in <code class="docutils literal notranslate"><span class="pre">(x,y,z)</span></code> format, but the <code class="docutils literal notranslate"><span class="pre">jointAngle...</span></code> ones differ in
+the Euler-rotation order by which they are computed (ZXY, standard or XZY,
+for shoulders usually).</p>
+<dl class="class">
+<dt id="io_anim_mvnx.mvnx.Mvnx">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.mvnx.</code><code class="sig-name descname">Mvnx</code><span class="sig-paren">(</span><em class="sig-param">mvnx_path</em>, <em class="sig-param">mvnx_schema_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class imports and adapts an XML file (expected to be in MVNX format)
+to a Python-friendly representation. See this module’s docstring for usage
+examples and more information.</p>
+<dl class="method">
+<dt id="io_anim_mvnx.mvnx.Mvnx.export">
+<code class="sig-name descname">export</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">pretty_print=True</em>, <em class="sig-param">extra_comment=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the current <code class="docutils literal notranslate"><span class="pre">mvnx</span></code> attribute to the given file path as XML and
+adds the <code class="docutils literal notranslate"><span class="pre">self.mvnx.attrib[&quot;pythonComment&quot;]</span></code> attribute with
+a timestamp.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.mvnx.Mvnx.extract_frame_info">
+<code class="sig-name descname">extract_frame_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.extract_frame_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.extract_frame_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.mvnx.Mvnx.extract_frames">
+<em class="property">static </em><code class="sig-name descname">extract_frames</code><span class="sig-paren">(</span><em class="sig-param">mvnx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.extract_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.extract_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bulk of the MVNX file is the <code class="docutils literal notranslate"><span class="pre">mvnx-&gt;subject-&gt;frames</span></code> section.
+This function parses it and returns its information in a
+python-friendly format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mvnx</strong> – An XML tree, expected to be in MVNX format</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code>
+where the metadata is a dict in the form <code class="docutils literal notranslate"><span class="pre">{'segmentCount':</span> <span class="pre">'23',</span>
+<span class="pre">'sensorCount':</span> <span class="pre">'17',</span> <span class="pre">'jointCount':</span> <span class="pre">'22'}</span></code>, the config frames are the
+first 3 frame entries (expected to contain special config info)
+and the normal_frames are all frames starting from the 4th. Both
+frame outputs are relational collections of dictionaries that can be
+formatted into tabular form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.mvnx.Mvnx.extract_segments">
+<code class="sig-name descname">extract_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.extract_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.extract_segments" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of the segment names in <code class="docutils literal notranslate"><span class="pre">self.mvnx.subject.segments</span></code>
+ordered by id (starting at 1 and incrementing +1).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-io_anim_mvnx.utils">
+<span id="io-anim-mvnx-utils-module"></span><h2>io_anim_mvnx.utils module<a class="headerlink" href="#module-io_anim_mvnx.utils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for interaction with Blender</p>
+<dl class="class">
+<dt id="io_anim_mvnx.utils.ArgumentParserForBlender">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">ArgumentParserForBlender</code><span class="sig-paren">(</span><em class="sig-param">prog=None</em>, <em class="sig-param">usage=None</em>, <em class="sig-param">description=None</em>, <em class="sig-param">epilog=None</em>, <em class="sig-param">parents=[]</em>, <em class="sig-param">formatter_class=&lt;class 'argparse.HelpFormatter'&gt;</em>, <em class="sig-param">prefix_chars='-'</em>, <em class="sig-param">fromfile_prefix_chars=None</em>, <em class="sig-param">argument_default=None</em>, <em class="sig-param">conflict_handler='error'</em>, <em class="sig-param">add_help=True</em>, <em class="sig-param">allow_abbrev=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#ArgumentParserForBlender"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.ArgumentParserForBlender" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.ArgumentParser</span></code></p>
+<p>This class is identical to its superclass, except for the parse_args
+method (see docstring). It resolves the ambiguity generated when calling
+Blender from the CLI with a python script, and both Blender and the script
+have arguments. E.g., the following call will make Blender crash because
+it will try to process the script’s -a and -b flags:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blender</span> <span class="o">--</span><span class="n">python</span> <span class="n">my_script</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">a</span> <span class="mi">1</span> <span class="o">-</span><span class="n">b</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>To bypass this issue this class uses the fact that Blender will ignore all
+arguments given after a double-dash (‘–’). The approach is that all
+arguments before ‘–’ go to Blender, arguments after go to the script.
+The following CLI calls work fine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blender</span> <span class="o">--</span><span class="n">python</span> <span class="n">my_script</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span> <span class="o">-</span><span class="n">a</span> <span class="mi">1</span> <span class="o">-</span><span class="n">b</span> <span class="mi">2</span>
+<span class="n">blender</span> <span class="o">--</span><span class="n">python</span> <span class="n">my_script</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="io_anim_mvnx.utils.ArgumentParserForBlender.get_argv_after_doubledash">
+<code class="sig-name descname">get_argv_after_doubledash</code><span class="sig-paren">(</span><em class="sig-param">argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#ArgumentParserForBlender.get_argv_after_doubledash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.ArgumentParserForBlender.get_argv_after_doubledash" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list&lt;str&gt;</em>) – Expected to be sys.argv (or alike).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The argv sublist after the first <code class="docutils literal notranslate"><span class="pre">'--'</span></code> element (if
+present, otherwise returns an empty list).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Works with any <em>ordered</em> collection of strings (e.g. list, tuple).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.utils.ArgumentParserForBlender.parse_args">
+<code class="sig-name descname">parse_args</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#ArgumentParserForBlender.parse_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.ArgumentParserForBlender.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is expected to behave identically as in the superclass,
+except that the sys.argv list will be pre-processed using
+get_argv_after_doubledash before. See the docstring of the class for
+usage examples and details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, <cite>argparse.ArgumentParser</cite> will call <cite>sys.exit()</cite> when
+encountering an error. Blender will react to that shutting down,
+making it look like a crash. Make sure the arguments are correct!</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="io_anim_mvnx.utils.KeymapManager">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">KeymapManager</code><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#KeymapManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></p>
+<p>This class implements functionality for registering/deregistering keymaps
+into Blender. It also behaves like a regular list, holding the keymaps
+currently registered. To inspect the registered keymaps simply iterate
+the instance.</p>
+<dl class="attribute">
+<dt id="io_anim_mvnx.utils.KeymapManager.KEYMAP_NAME">
+<code class="sig-name descname">KEYMAP_NAME</code><em class="property"> = 'Object Mode'</em><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager.KEYMAP_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="io_anim_mvnx.utils.KeymapManager.KEYMAP_REGION_TYPE">
+<code class="sig-name descname">KEYMAP_REGION_TYPE</code><em class="property"> = 'WINDOW'</em><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager.KEYMAP_REGION_TYPE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="io_anim_mvnx.utils.KeymapManager.KEYMAP_SPACE_TYPE">
+<code class="sig-name descname">KEYMAP_SPACE_TYPE</code><em class="property"> = 'EMPTY'</em><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager.KEYMAP_SPACE_TYPE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.utils.KeymapManager.register">
+<code class="sig-name descname">register</code><span class="sig-paren">(</span><em class="sig-param">context</em>, <em class="sig-param">key</em>, <em class="sig-param">stroke_mode</em>, <em class="sig-param">op_name</em>, <em class="sig-param">ctrl=True</em>, <em class="sig-param">shift=True</em>, <em class="sig-param">alt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#KeymapManager.register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new keymap to this collection, and to the config in
+<code class="docutils literal notranslate"><span class="pre">context.window_manager.keyconfigs.addon</span></code>. See the API for details:</p>
+<div class="line-block">
+<div class="line"><a class="reference external" href="https://docs.blender.org/api/blender2.8/bpy.types.KeyMap.html">https://docs.blender.org/api/blender2.8/bpy.types.KeyMap.html</a></div>
+<div class="line"><a class="reference external" href="https://docs.blender.org/api/blender2.8/bpy.types.KeyMapItem.html">https://docs.blender.org/api/blender2.8/bpy.types.KeyMapItem.html</a></div>
+<div class="line"><a class="reference external" href="https://docs.blender.org/manual/de/dev/advanced/keymap_editing.html">https://docs.blender.org/manual/de/dev/advanced/keymap_editing.html</a></div>
+</div>
+<p>Usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">kmm</span> <span class="o">=</span> <span class="n">KeymapManager</span><span class="p">()</span>
+<span class="n">kmm</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;PRESS&quot;</span><span class="p">,</span> <span class="n">MyOperator</span><span class="o">.</span><span class="n">bl_idname</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>context</strong> (<em>bpy.types.Context</em>) – The Blender context to work in.</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – See bpy.types.KeyMapItem.key_modifier</p></li>
+<li><p><strong>stroke_mode</strong> (<em>str</em>) – See bpy.types.KeyMapItem.value</p></li>
+<li><p><strong>op_name</strong> (<em>str</em>) – Name of a valid operation in <code class="docutils literal notranslate"><span class="pre">bpy.ops</span></code>
+(usually the <code class="docutils literal notranslate"><span class="pre">bl_idname</span></code>)</p></li>
+<li><p><strong>ctrl</strong><strong>, </strong><strong>shift</strong><strong>, </strong><strong>alt</strong> (<em>booleans</em>) – Modifiers of the <code class="docutils literal notranslate"><span class="pre">key</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.utils.KeymapManager.unregister">
+<code class="sig-name descname">unregister</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#KeymapManager.unregister"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.KeymapManager.unregister" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes every mapped item from every keymap in this collection, and
+then empties the collection.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="io_anim_mvnx.utils.OperatorToMenuManager">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">OperatorToMenuManager</code><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#OperatorToMenuManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.OperatorToMenuManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></p>
+<p>This class implements functionality for adding/removing operators
+into Blender UI menus. It also behaves like a regular list, holding
+the currently registered items. Usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">omm</span> <span class="o">=</span> <span class="n">OperatorToMenuManager</span><span class="p">()</span>
+<span class="c1"># In register():</span>
+<span class="n">omm</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">MyOperator</span><span class="p">,</span> <span class="n">bpy</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">VIEW3D_MT_object</span><span class="p">)</span>
+<span class="c1"># ... in unregister():</span>
+<span class="n">omm</span><span class="o">.</span><span class="n">unregister</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="io_anim_mvnx.utils.OperatorToMenuManager.register">
+<code class="sig-name descname">register</code><span class="sig-paren">(</span><em class="sig-param">op_class</em>, <em class="sig-param">menu_class</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#OperatorToMenuManager.register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.OperatorToMenuManager.register" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>op_class</strong> (<em>bpy.types.Operator</em>) – (Sub)class handle with desired
+functionality.</p></li>
+<li><p><strong>menu_class</strong> (<em>bpy.types.{Header</em><em>, </em><em>Panel</em><em>, </em><em>..}</em>) – Class handle for the Blender GUI where the
+functionality can be triggered.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">op_class</span></code> must define the <code class="docutils literal notranslate"><span class="pre">bl_idname</span></code> and <code class="docutils literal notranslate"><span class="pre">bl_label</span></code> fields.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.utils.OperatorToMenuManager.unregister">
+<code class="sig-name descname">unregister</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#OperatorToMenuManager.unregister"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.OperatorToMenuManager.unregister" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes every mapped operator from every menu class in this collection,
+then empties the collection.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.utils.make_timestamp">
+<code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">make_timestamp</code><span class="sig-paren">(</span><em class="sig-param">timezone='Europe/Berlin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#make_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.make_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output example: day, month, year, hour, min, sec, milisecs:
+10_Feb_2018_20:10:16.151</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.utils.resolve_path">
+<code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">resolve_path</code><span class="sig-paren">(</span><em class="sig-param">*path_elements</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#resolve_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.resolve_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience path wrapper to find elements in this package. Retrieves
+the absolute path, given the OS-agnostic path relative to the package
+root path (by bysically joining the path elements via <code class="docutils literal notranslate"><span class="pre">os.path.join</span></code>).
+E.g., the following call retrieves the absolute path for
+<code class="docutils literal notranslate"><span class="pre">&lt;PACKAGE_ROOT&gt;/a/b/test.txt</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resolve_path</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;test.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Params strings path_elements</dt>
+<dd class="field-odd"><p>From left to right, the path nodes,
+the last one being the filename.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.utils.rot_euler_degrees">
+<code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">rot_euler_degrees</code><span class="sig-paren">(</span><em class="sig-param">rot_x</em>, <em class="sig-param">rot_y</em>, <em class="sig-param">rot_z</em>, <em class="sig-param">order='XYZ'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#rot_euler_degrees"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.rot_euler_degrees" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rot</strong> (<em>float</em>) – Rotation angle in degrees.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An Euler rotation object with the given rotations (converted to
+gradians) and rotation order.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-io_anim_mvnx">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-io_anim_mvnx" title="Permalink to this headline">¶</a></h2>
+<p>Init file for the add-on.</p>
+<p>To install it, make sure Blender’s Python is able to find it under
+addon_utils.paths(), and that the Blender version matches to make it
+installable.</p>
+<p>Alternatively, run this init file as a script from Blender.</p>
+<dl class="function">
+<dt id="io_anim_mvnx.register">
+<code class="sig-prename descclassname">io_anim_mvnx.</code><code class="sig-name descname">register</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx.html#register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main register function, called on startup by Blender</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.unregister">
+<code class="sig-prename descclassname">io_anim_mvnx.</code><code class="sig-name descname">unregister</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx.html#unregister"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.unregister" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main unregister function, called on shutdown by Blender</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to io_anim_mvnx’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

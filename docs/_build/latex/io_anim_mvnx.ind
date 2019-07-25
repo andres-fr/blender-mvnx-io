@@ -1,0 +1,69 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter A
+  \item \spxentry{ArgumentParserForBlender}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{3}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{export()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
+  \item \spxentry{extract\_frame\_info()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
+  \item \spxentry{extract\_frames()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx static method}, 
+		\hyperpage{3}
+  \item \spxentry{extract\_segments()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
+
+  \indexspace
+  \bigletter G
+  \item \spxentry{get\_argv\_after\_doubledash()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}, 
+		\hyperpage{3}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{io\_anim\_mvnx}\spxextra{module}, \hyperpage{5}
+  \item \spxentry{io\_anim\_mvnx.mvnx}\spxextra{module}, \hyperpage{1}
+  \item \spxentry{io\_anim\_mvnx.utils}\spxextra{module}, \hyperpage{3}
+
+  \indexspace
+  \bigletter K
+  \item \spxentry{KEYMAP\_NAME}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
+		\hyperpage{4}
+  \item \spxentry{KEYMAP\_REGION\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
+		\hyperpage{4}
+  \item \spxentry{KEYMAP\_SPACE\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
+		\hyperpage{4}
+  \item \spxentry{KeymapManager}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{4}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{5}
+  \item \spxentry{Mvnx}\spxextra{class in io\_anim\_mvnx.mvnx}, \hyperpage{2}
+
+  \indexspace
+  \bigletter O
+  \item \spxentry{OperatorToMenuManager}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{5}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{parse\_args()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}, 
+		\hyperpage{4}
+
+  \indexspace
+  \bigletter R
+  \item \spxentry{register()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{6}
+  \item \spxentry{register()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}, \hyperpage{4}
+  \item \spxentry{register()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}, 
+		\hyperpage{5}
+  \item \spxentry{resolve\_path()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{5}
+  \item \spxentry{rot\_euler\_degrees()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{5}
+
+  \indexspace
+  \bigletter U
+  \item \spxentry{unregister()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{6}
+  \item \spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}, \hyperpage{5}
+  \item \spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}, 
+		\hyperpage{5}
+
+\end{sphinxtheindex}

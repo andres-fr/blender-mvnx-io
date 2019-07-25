@@ -1,0 +1,426 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_anim_mvnx.mvnx &mdash; io_anim_mvnx 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> io_anim_mvnx
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../io_anim_mvnx.html">io_anim_mvnx package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">io_anim_mvnx</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../io_anim_mvnx.html">io_anim_mvnx</a> &raquo;</li>
+        
+      <li>io_anim_mvnx.mvnx</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for io_anim_mvnx.mvnx</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains functionality concerning the adaption of the</span>
+<span class="sd">XSENS MVN-XML format into our Python setup.</span>
+
+<span class="sd">The official explanation can be found in section 14.4 of this document::</span>
+<span class="sd">  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</span>
+
+<span class="sd">A copy is stored in this repository.</span>
+
+<span class="sd">The following section introduces more informally the contents of the imported</span>
+<span class="sd">MVN file and the way they can be accessed from Python::</span>
+
+<span class="sd">  # MVNX schemata can be found in this package or in</span>
+<span class="sd">  # https://www.xsens.com/mvn/mvnx/schema.xsd</span>
+<span class="sd">  mvn_path = &quot;XXX&quot;</span>
+<span class="sd">  mmvn = Mvnx(mvn_path)</span>
+
+<span class="sd">  # These elements contain some small metadata:</span>
+<span class="sd">  mmvn.mvnx.attrib</span>
+<span class="sd">  mmvn.mvnx.comment.attrib</span>
+<span class="sd">  mmvn.mvnx.securityCode.attrib[&quot;code&quot;]</span>
+<span class="sd">  mmvn.mvnx.subject.attrib</span>
+
+<span class="sd">  # subject.segments contain 3D pos_b labels:</span>
+<span class="sd">  for ch in mmvn.mvnx.subject.segments.iterchildren():</span>
+<span class="sd">      ch.attrib, [p.attrib for p in ch.points.iterchildren()]</span>
+
+<span class="sd">  # Segments can look as follows: ``[&#39;Pelvis&#39;, &#39;L5&#39;, &#39;L3&#39;, &#39;T12&#39;, &#39;T8&#39;, &#39;Neck&#39;,</span>
+<span class="sd">  &#39;Head&#39;, &#39;RightShoulder&#39;, &#39;RightUpperArm&#39;, &#39;RightForeArm&#39;, &#39;RightHand&#39;,</span>
+<span class="sd">  &#39;LeftShoulder&#39;, &#39;LeftUpperArm&#39;, &#39;LeftForeArm&#39;, &#39;LeftHand&#39;, &#39;RightUpperLeg&#39;,</span>
+<span class="sd">  &#39;RightLowerLeg&#39;, &#39;RightFoot&#39;, &#39;RightToe&#39;, &#39;LeftUpperLeg&#39;, &#39;LeftLowerLeg&#39;,</span>
+<span class="sd">  &#39;LeftFoot&#39;, &#39;LeftToe&#39;]``</span>
+
+<span class="sd">  # sensors is basically a list of names</span>
+<span class="sd">  for s in mmvn.mvnx.subject.sensors.iterchildren():</span>
+<span class="sd">      s.attrib</span>
+
+<span class="sd">  #  Joints is a list that connects segment points:</span>
+<span class="sd">  for j in mmvn.mvnx.subject.joints.iterchildren():</span>
+<span class="sd">      j.attrib[&quot;label&quot;], j.getchildren()</span>
+
+<span class="sd">  # miscellaneous:</span>
+<span class="sd">  for j in mmvn.mvnx.subject.ergonomicJointAngles.iterchildren():</span>
+<span class="sd">      j.attrib, j.getchildren()</span>
+
+<span class="sd">  for f in mmvn.mvnx.subject.footContactDefinition.iterchildren():</span>
+<span class="sd">      f.attrib, f.getchildren()</span>
+
+<span class="sd">  # The bulk of the data is in the frames.</span>
+<span class="sd">  frames_metadata, config_frames, normal_frames = mmvn.extract_frame_info()</span>
+
+<span class="sd">  # Metadata looks like this:</span>
+<span class="sd">  {&#39;segmentCount&#39;: &#39;23&#39;, &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}</span>
+
+<span class="sd">  # config frames have the following fields:</span>
+<span class="sd">  [&#39;orientation&#39;, &#39;position&#39;, &#39;time&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]</span>
+
+<span class="sd">  # normal frames have the following fields:</span>
+<span class="sd">  [&#39;orientation&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;acceleration&#39;,</span>
+<span class="sd">   &#39;angularVelocity&#39;, &#39;angularAcceleration&#39;, &#39;footContacts&#39;,</span>
+<span class="sd">   &#39;sensorFreeAcceleration&#39;, &#39;sensorMagneticField&#39;, &#39;sensorOrientation&#39;,</span>
+<span class="sd">   &#39;jointAngle&#39;, &#39;jointAngleXZY&#39;, &#39;jointAngleErgo&#39;, &#39;centerOfMass&#39;, &#39;time&#39;,</span>
+<span class="sd">   &#39;index&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]</span>
+
+<span class="sd">The following fields contain metadata about the frame:</span>
+
+<span class="sd">:time: ms since start (integer). It is close to</span>
+<span class="sd">  ``int(1000.0 * index / samplerate)``, being equal most of the times and</span>
+<span class="sd">  at most 1 milisecond away. It is neither truncated nor rounded, maybe it</span>
+<span class="sd">  is given by the hardware.</span>
+<span class="sd">:index: starts with 0, +1 each normal frame</span>
+<span class="sd">:tc: string like &#39;02:23:28:164&#39;</span>
+<span class="sd">:ms: unix timestamp like 1515983008686 (used to compute time)</span>
+<span class="sd">:type: one of &quot;identity&quot;, &quot;tpose&quot;, &quot;tpose-isb&quot;, &quot;normal&quot;</span>
+
+<span class="sd"># The following fields are float vectors of the following dimensionality:</span>
+
+<span class="sd">:orientation: ``segmentCount*4 = 92`` Quaternion vector</span>
+<span class="sd">:position, velocity, acceleration, angularVelocity, angularAcceleration:</span>
+<span class="sd">  ``segmentCount*3 = 69`` 3D vectors in ``(x,y,z)`` format</span>
+<span class="sd">:footContacts: ``4`` 4D boolean vector</span>
+<span class="sd">:sensorFreeAcceleration, sensorMagneticField: ``sensorCount*3 = 51``</span>
+<span class="sd">:sensorOrientation: ``sensorCount*4 = 68``</span>
+<span class="sd">:jointAngle, jointAngleXZY: ``jointCount*3 = 66``</span>
+<span class="sd">:jointAngleErgo: ``12``</span>
+<span class="sd">:centerOfMass: ``3``</span>
+
+<span class="sd">The units are SI for position, velocity and acceleration. Angular magnitudes</span>
+<span class="sd">are in radians except the ``jointAngle...`` ones that are in degrees. All 3D</span>
+<span class="sd">vectors are in ``(x,y,z)`` format, but the ``jointAngle...`` ones differ in</span>
+<span class="sd">the Euler-rotation order by which they are computed (ZXY, standard or XZY,</span>
+<span class="sd">for shoulders usually).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="k">import</span> <span class="n">etree</span><span class="p">,</span> <span class="n">objectify</span>  <span class="c1"># https://lxml.de/validation.html</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">make_timestamp</span>  <span class="c1"># , resolve_path</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## GLOBALS</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## MVN CLASS</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="Mvnx"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx">[docs]</a><span class="k">class</span> <span class="nc">Mvnx</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class imports and adapts an XML file (expected to be in MVNX format)</span>
+<span class="sd">    to a Python-friendly representation. See this module&#39;s docstring for usage</span>
+<span class="sd">    examples and more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvnx_path</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str mvnx_path: a valid path pointing to the XML file to load</span>
+<span class="sd">        :param str mvnx_schema_path: (optional): if given, the given MVNX will</span>
+<span class="sd">          be validated against this XML schema definition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_path</span> <span class="o">=</span> <span class="n">mvnx_path</span>
+        <span class="c1">#</span>
+        <span class="n">mvnx</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mvnx_path</span><span class="p">)</span>
+        <span class="c1"># if a schema is given, load it and validate mvn</span>
+        <span class="k">if</span> <span class="n">mvnx_schema_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XMLSchema</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">mvnx_schema_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">assertValid</span><span class="p">(</span><span class="n">mvnx</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">mvnx</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Mvnx.export"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves the current ``mvnx`` attribute to the given file path as XML and</span>
+<span class="sd">        adds the ``self.mvnx.attrib[&quot;pythonComment&quot;]`` attribute with</span>
+<span class="sd">        a timestamp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Exported from </span><span class="si">%s</span><span class="s2"> on </span><span class="si">%s</span><span class="s2">. &quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">make_timestamp</span><span class="p">())</span> <span class="o">+</span> <span class="n">extra_comment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;pythonComment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="p">,</span>
+                               <span class="n">pretty_print</span><span class="o">=</span><span class="n">pretty_print</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Mvnx] exported to&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="c1"># EXTRACTORS: LIKE &quot;GETTERS&quot; BUT RETURN A MODIFIED COPY OF THE CONTENTS</span>
+<div class="viewcode-block" id="Mvnx.extract_frame_info"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_frame_info">[docs]</a>    <span class="k">def</span> <span class="nf">extract_frame_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f_meta</span><span class="p">,</span> <span class="n">config_f</span><span class="p">,</span> <span class="n">normal_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="p">)</span>
+        <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">f_meta</span>
+        <span class="n">config_frames</span> <span class="o">=</span> <span class="n">config_f</span>
+        <span class="n">normal_frames</span> <span class="o">=</span> <span class="n">normal_f</span>
+        <span class="c1">#</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span> <span class="o">==</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_segments</span><span class="p">())),</span> <span class="s2">&quot;Inconsistent segmentCount?&quot;</span>
+        <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
+
+<div class="viewcode-block" id="Mvnx.extract_frames"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_frames">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_frames</span><span class="p">(</span><span class="n">mvnx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The bulk of the MVNX file is the ``mvnx-&gt;subject-&gt;frames`` section.</span>
+<span class="sd">        This function parses it and returns its information in a</span>
+<span class="sd">        python-friendly format.</span>
+
+<span class="sd">        :param mvnx: An XML tree, expected to be in MVNX format</span>
+
+<span class="sd">        :returns: a tuple ``(frames_metadata, config_frames, normal_frames)``</span>
+<span class="sd">          where the metadata is a dict in the form ``{&#39;segmentCount&#39;: &#39;23&#39;,</span>
+<span class="sd">          &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}``, the config frames are the</span>
+<span class="sd">          first 3 frame entries (expected to contain special config info)</span>
+<span class="sd">          and the normal_frames are all frames starting from the 4th. Both</span>
+<span class="sd">          frame outputs are relational collections of dictionaries that can be</span>
+<span class="sd">          formatted into tabular form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Converts a node with a text like &#39;1.23, 2.34 ...&#39; into a list</span>
+<span class="sd">            like [1.23, 2.34, ...]</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
+
+        <span class="k">def</span> <span class="nf">frame_to_dict</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">is_normal</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            A frame node has a dict of ``attribs`` and a dict of ``items``.</span>
+<span class="sd">            This function merges both and returns a single python dict</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">str_to_vec</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+                 <span class="o">**</span><span class="n">frame</span><span class="o">.</span><span class="n">attrib</span><span class="p">}</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>  <span class="c1"># ms since start, i.e. ms_i - ms_0</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">])</span>  <span class="c1"># unix timestamp, ms since epoch</span>
+            <span class="k">if</span> <span class="n">is_normal</span><span class="p">:</span>  <span class="c1"># only normal frames have index</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>  <span class="c1"># starts by 0, increases by 1</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">return</span> <span class="n">d</span>
+        <span class="c1">#</span>
+        <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">attrib</span>
+        <span class="n">all_frames</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+        <span class="c1"># first 3 frames are config. types: &quot;identity&quot;, &quot;tpose&quot;, &quot;tpose-isb&quot;</span>
+        <span class="c1"># rest of frames contain proper data. type: &quot;normal&quot;</span>
+        <span class="n">config_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[:</span><span class="mi">3</span><span class="p">]]</span>
+        <span class="n">normal_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[</span><span class="mi">3</span><span class="p">:]]</span>
+        <span class="c1">#</span>
+        <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
+
+<div class="viewcode-block" id="Mvnx.extract_segments"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_segments">[docs]</a>    <span class="k">def</span> <span class="nf">extract_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: A list of the segment names in ``self.mvnx.subject.segments``</span>
+<span class="sd">          ordered by id (starting at 1 and incrementing +1).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="n">ch</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">]),</span>\
+            <span class="s2">&quot;Segments aren&#39;t ordered by id?&quot;</span>
+        <span class="k">return</span> <span class="n">segments</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+# Define needed environment variables: the rest of the yml will most
+# likely translate well to other similar projects, except for the
+# "secure" passwords in the deploy stage, which have to be adapted.
+env:
+  global:
+    # test stage config
+    - CODECOV_REQUIRED_PERCENT="0" # for utest+codecov
+    # build stage config
+    - DOC_PACKAGE_NAME="io_anim_mvnx"
+    - DOC_AUTHOR_NAME="Andres FR"
+    - BUMPVERSION_FILE=".bumpversion.cfg"
+    # deploy stage config
+    - GH_RELEASES_ASSET_PATH="dist/*" # all matches for this path will be included into the GitHub release
+    - REPO_NAME="andres-fr/blender-mvnx-io" # releases will only work under this name
+    - CHANGELOG_PATH="CHANGELOG.md" # relative to repo root
+
+# this line routes the builds to Ubuntu 16.04
+dist: xenial
+
+# implicitly creates a venv for python in the VM (so pip syntax is "global")
+language: python
+python:
+  - 3.7
+
+# by default Travis starts every job from scratch. This speeds up things
+cache: pip
+
+# Perform pipeline only for events to master branch
+branches:
+  only:
+  - master
+  # this is needed for tag push actions (https://github.com/travis-ci/travis-ci/issues/8518#issuecomment-333489268)
+  - /^v.*$/
+
+#  https://docs.travis-ci.com/user/multi-os/
+os:
+  - linux
+  # - osx
+  #- windows
+
+install: pip install -r requirements.txt
+
+
+addons:
+  apt:
+    packages:
+      - latexmk
+      - texlive-fonts-recommended
+      - texlive-latex-recommended
+      - texlive-latex-extra
+  # homebrew:
+  #   packages: ...
+
+# here we define the stages. stage ordering will come later
+jobs:
+  include:
+    # Perform all needed tests to ensure repo quality. All scripts
+    # in a stage are done in parallel. Stages are done sequentially.
+    - stage: test
+      name: "Check Code Style"
+      script: python -m flake8
+    - script: python -m unittest io_anim_mvnx_utest/tautology.py
+      name: "Tautological Test"
+    - script: blender -b python ci_scripts/utest_with_coverage.py -- -n "$DOC_PACKAGE_NAME" -p "$CODECOV_REQUIRED_PERCENT"
+      name: "Unit Testing and Code Coverage"
+
+    # If all tests pass, go on to the build stage
+    - stage: build
+      script: python setup.py sdist bdist_wheel
+      name: "Build Package"
+    - script:  blender -b --python ci_scripts/make_sphinx_docs.py -- -n "$DOC_PACKAGE_NAME" -a "$DOC_AUTHOR_NAME" -f "$BUMPVERSION_FILE" -o "docs" -l
+      name: "Build Autodocs"
+
+    # If building was successful, deploy to various platforms
+    - stage: deploy
+      before_script: python setup.py sdist bdist_wheel # since we are deploying in a proper stage, the repo starts from scratch and needs to rebuild.
+      script: echo ""
+      name: "Deploy to GitHub Releases"
+      deploy:
+        - provider: releases
+          skip_cleanup: true
+          name: "$TRAVIS_COMMIT_MESSAGE"
+          body: "See [CHANGELOG]($CHANGELOG_PATH) for details."
+          api_key:
+            secure: "hglqBpMBdohKerTSXFbwlrWnnnL01wV1mRPxNEr5EnB4+v+BQ4CPfutX+J5BZNMBJ5II5GeMbHCJh/IJg2jRPkEi0/aA9hbnVOmO05GgHsetcku5iiRRagbo+axU2gEynB0a3rCH+DJgouT5Gz6QnmqtiCjk+Rj9LA3yEfM48xTBkF2kWgDp/0Id8LH7tMKgBA1FrmColngC8kBLA5tBjGjO8/4x38krjCRM1Q37Hu9eQt03y4M5v93fBDSkUfOQzzI4VKpA38NE815X9q6pMkS8ZclMDj6cm05apwN7yck06TIsOcUzV+qJ+9+RakEAkZteB9yRMzwc3L5cq51q4Nn5hM6sGSjP0GWUVl11GPwwgvxrFSVx6jCnAOn4o2hskcWhVCJTK2GPeJKLTVfPqSLcBriR8pyjQWB1BqH29sqf6aXjOQi6qriMACtvPW7oPrMKOK8i5/xweGVg0twdPLXvuwovlaBiZvy1YgOKDHcAFyQ6K8uG+iHtAtRsbK89e1q4B11Lew2XJY8DRfQLQxK7s4YXxXNAdtyC+JslAdG9lu4ktnBTGCTK9qw+s9HfoNhaorP0qvQLeag6Cc/yYcvBwxyzpZmjbnABCjBOc1G0mwYunOLcJ1b0gjDwqOKg6+BZ1ab4lveKGmYhHZE3ZzGQdVO6MeBmBCKHKTa+b88="
+          file_glob: true
+          file: "$GH_RELEASES_ASSET_PATH"
+          on:
+            tags: true
+            repo: "$REPO_NAME"
+
+# Here you can specify the order for stages, or skip some
+stages:
+  - test
+  - build
+  - deploy
