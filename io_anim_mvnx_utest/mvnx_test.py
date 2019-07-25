@@ -17,6 +17,7 @@ import io_anim_mvnx
 # from io_anim_mvnx.utils import ArgumentParserForBlender
 
 from os.path import join, dirname
+from io_anim_mvnx.utils import resolve_path
 from io_anim_mvnx.mvnx import Mvnx
 
 
@@ -24,7 +25,7 @@ class MvnxTest(unittest.TestCase):
     """
     Mock the sys.argv and test the ArgumentParserForBlender.
     """
-    DATAPATH = join(dirname(io_anim_mvnx.__file__), "data")
+    DATAPATH = resolve_path("data") # join(dirname(io_anim_mvnx.__file__), "data")
     TEST_DATAPATH = join(dirname(__file__), "data")
     # APFB = ArgumentParserForBlender
     # NUMBERS = [str(i) for i in range(1, 20)]

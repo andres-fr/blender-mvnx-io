@@ -18,8 +18,8 @@ __author__ = "Andres FR"
 
 import bpy
 #
-from .utils import OperatorToMenuManager, KeymapManager
-
+from .utils import OperatorToMenuManager, KeymapManager, ImportFilesCollection
+from .operators import ImportMVNX
 # #############################################################################
 # ## CONFIG
 # #############################################################################
@@ -30,14 +30,16 @@ VERSION = "0.1.0"  # automatically managed by bumpversion
 # required by blender plugins
 # (see https://wiki.blender.org/wiki/Process/Addons/Guidelines/metainfo)
 bl_info = {
-    "name": "io_anim_mvnx",
+    "name": "MVNX animation I/O addon",
     "author": "Andres FR",
-    "support": "TESTING",
+    # "version"  # this triggered problems with bumpversion. help is appreciated
     "blender": (2, 80, 0),
+    "location": "File > Import-Export",
     "description": "I/O functionality for MoCap data in MVNX format",
-    # "warning": "",
     # 'wiki_url': "",
-    "category": "I/O"}
+    # "warning": "",
+    "support": "TESTING",
+    "category": "Import-Export"}
 
 KEYMAPS = []
 # KEYMAPS = [{"op_name": MaximizeAreaView3d.bl_idname,
@@ -53,7 +55,7 @@ KEYMAPS = []
 # #############################################################################
 
 # the classes to be registered
-classes = []
+classes = [ImportMVNX, ImportFilesCollection]  # , ExportMVNX]
 
 # # add Operators to registered classes
 # classes += [MaximizeAreaView3d,
@@ -71,7 +73,6 @@ register_cl, unregister_cl = bpy.utils.register_classes_factory(classes)
 kmm = KeymapManager()
 omm = OperatorToMenuManager()
 
-
 def register():
     """
     Main register function, called on startup by Blender
@@ -79,7 +80,8 @@ def register():
     register_cl()
     for km_dict in KEYMAPS:
         kmm.register(bpy.context, **km_dict)
-    # omm.register(ObjectCursorArray, bpy.types.VIEW3D_MT_object)
+    omm.register(ImportMVNX, bpy.types.TOPBAR_MT_file_import)
+    # omm.register(ExportMVNX, bpy.types.TOPBAR_MT_file_export)
 
 
 def unregister():

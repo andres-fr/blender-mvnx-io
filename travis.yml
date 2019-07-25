@@ -82,7 +82,7 @@ jobs:
           name: "$TRAVIS_COMMIT_MESSAGE"
           body: "See [CHANGELOG]($CHANGELOG_PATH) for details."
           api_key:
-            secure: "hglqBpMBdohKerTSXFbwlrWnnnL01wV1mRPxNEr5EnB4+v+BQ4CPfutX+J5BZNMBJ5II5GeMbHCJh/IJg2jRPkEi0/aA9hbnVOmO05GgHsetcku5iiRRagbo+axU2gEynB0a3rCH+DJgouT5Gz6QnmqtiCjk+Rj9LA3yEfM48xTBkF2kWgDp/0Id8LH7tMKgBA1FrmColngC8kBLA5tBjGjO8/4x38krjCRM1Q37Hu9eQt03y4M5v93fBDSkUfOQzzI4VKpA38NE815X9q6pMkS8ZclMDj6cm05apwN7yck06TIsOcUzV+qJ+9+RakEAkZteB9yRMzwc3L5cq51q4Nn5hM6sGSjP0GWUVl11GPwwgvxrFSVx6jCnAOn4o2hskcWhVCJTK2GPeJKLTVfPqSLcBriR8pyjQWB1BqH29sqf6aXjOQi6qriMACtvPW7oPrMKOK8i5/xweGVg0twdPLXvuwovlaBiZvy1YgOKDHcAFyQ6K8uG+iHtAtRsbK89e1q4B11Lew2XJY8DRfQLQxK7s4YXxXNAdtyC+JslAdG9lu4ktnBTGCTK9qw+s9HfoNhaorP0qvQLeag6Cc/yYcvBwxyzpZmjbnABCjBOc1G0mwYunOLcJ1b0gjDwqOKg6+BZ1ab4lveKGmYhHZE3ZzGQdVO6MeBmBCKHKTa+b88="
+            secure: "asdf"
           file_glob: true
           file: "$GH_RELEASES_ASSET_PATH"
           on:

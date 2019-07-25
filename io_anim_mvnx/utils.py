@@ -17,6 +17,9 @@ import pytz
 from math import radians  # degrees
 # mathutils is a blender package
 from mathutils import Euler  # , Vector
+from bpy.types import PropertyGroup
+from bpy.props import StringProperty
+from bpy.types import PropertyGroup
 # import bpy
 #
 from . import __path__ as PACKAGE_ROOT_PATH
@@ -220,6 +223,19 @@ class KeymapManager(list):
         for km, kmi in self:
             km.keymap_items.remove(kmi)
         self.clear()
+
+
+class ImportFilesCollection(PropertyGroup):
+    """
+    This property group allows to load multiple files from the UI file browser
+    menu, by selecting them with shift pressed.
+    Source and usage example::
+      https://www.blender.org/forum/viewtopic.php?t=26470
+    """
+    name: StringProperty(name="File Path",
+                         description="Filepath used for importing the file",
+                         maxlen=1024,
+                         subtype='FILE_PATH')
 
 
 # #############################################################################
