@@ -13,7 +13,7 @@ import bpy
 from mathutils import Vector  # , Euler  # mathutils is a blender package
 #
 from .mvnx import Mvnx
-
+from .utils import str_to_vec, is_number
 
 # #############################################################################
 # ## GLOBALS
@@ -30,6 +30,103 @@ from .mvnx import Mvnx
 # #############################################################################
 # ## HELPERS
 # #############################################################################
+
+KEYPOINTS_TO_MVNX = {"Hips": ("Pelvis", "pHipOrigin"),  # 100y   100z   100x
+                     #
+                     "Chest": ("Pelvis", "jL5S1"),
+                     "Chest2": ("L5", "jL4L3"),
+                     "Chest3": ("L3", "jL1T12"),
+                     "Chest4": ("T12", "jT9T8"),
+                     "Neck": ("T8", "jT1C7"),
+                     "Head": ("Neck", "jC1Head",
+                              "Head", "pTopOfHead"),
+                     #
+                     "RightCollar": ("T8", "jRightT4Shoulder"),
+                     "RightShoulder": ("RightShoulder", "jRightShoulder"),
+                     "RightElbow": ("RightUpperArm", "jRightElbow"),
+                     "RightWrist": ("RightForeArm", "jRightWrist",
+                                    "RightHand", "pRightTopOfHand"),
+                     #
+                     "LeftCollar": ("T8", "jLeftT4Shoulder"),
+                     "LeftShoulder": ("LeftShoulder", "jLeftShoulder"),
+                     "LeftElbow": ("LeftUpperArm", "jLeftElbow"),
+                     "LeftWrist": ("LeftForeArm", "jLeftWrist",
+                                   "LeftHand", "pLeftTopOfHand"),
+                     #
+                     "RightHip": ("Pelvis", "jRightHip"),
+                     "RightKnee": ("RightUpperLeg", "jRightKnee"),
+                     "RightAnkle": ("RightLowerLeg", "jRightAnkle"),
+                     "RightToe": ("RightFoot", "jRightBallFoot",
+                                  "RightToe", "pRightToe"),
+                     #
+                     "LeftHip": ("Pelvis", "jLeftHip"),
+                     "LeftKnee": ("LeftUpperLeg", "jLeftKnee"),
+                     "LeftAnkle": ("LeftLowerLeg", "jLeftAnkle"),
+                     "LeftToe": ("LeftFoot", "jLeftBallFoot",
+                                 "LeftToe", "pLeftToe")}
+
+
+FULL_BVH_HUMAN = {"Hips":
+                  {"Chest":
+                   {"Chest2":
+                    {"Chest3":
+                     {"Chest4":
+                      {"Neck": "Head",
+                       "RightCollar":
+                       {"RightShoulder": {"RightElbow": "RightWrist"}},
+                       "LeftCollar":
+                       {"LeftShoulder": {"LeftElbow": "LeftWrist"}}
+                      }
+                     }
+                    }
+                   },
+                   "RightHip": {"RightKnee": {"RightAnkle": "RightToe"}},
+                   "LeftHip": {"LeftKnee": {"LeftAnkle": "LeftToe"}}}}
+
+class BoneNode:
+    """
+    """
+    def __init__(self, name, offsets, children=[]):
+        """
+        """
+        self.name = name
+        self.offsets = offsets
+        self.children = children
+
+    def __str__(self):
+        return "<BoneNode: %s=%s>" % (self.name, str(self.offsets))
+
+def make_bonenode_forest(name_tree, offsets):
+    """
+    :param mvnx_segments: a dict
+    """
+    if isinstance(name_tree, str):
+        return [BoneNode(name_tree,
+                         [str_to_vec(x) for x in offsets[name_tree]])]
+    else:
+        roots = [BoneNode(k, [str_to_vec(x) for x in offsets[k]],
+                          make_bonenode_forest(v, offsets))
+                 for k, v in name_tree.items()]
+        return roots
+
+
+def parse_skeleton(mvnx, skeleton=FULL_BVH_HUMAN,
+                   skel_to_mvnx_map=KEYPOINTS_TO_MVNX):
+    """
+    """
+    segments = {s.attrib["id"]: s for s
+                in mvnx.mvnx.subject.segments.iterchildren()}
+    offsets = {(s.attrib["label"], p.attrib["label"]): p.pos_b.text
+               for s in segments.values()
+               for p in s.points.iterchildren()}
+    # a dict in the form {"Head": ["1 2 3", "4 5 6"], "Hips": ["0 0 0"], ...}
+    skel_to_offsets = {k: [offsets[v[i:i+2]] for i in range(0, len(v), 2)]
+                       for k, v in skel_to_mvnx_map.items()}
+
+    forest = make_bonenode_forest(skeleton, skel_to_offsets)
+    return segments, forest
+
+
 
 def load_mvnx_into_blender(
         context,
@@ -49,9 +146,7 @@ def load_mvnx_into_blender(
     mvnx_filename = basename(filepath)
     mvnx = Mvnx(filepath, mvnx_schema_path)
     frames_metadata, config_frames, normal_frames = mvnx.extract_frame_info()
-    segments = {i: s for i, s
-                in enumerate(mvnx.mvnx.subject.segments.iterchildren())}
-    num_segments = len(segments)
+    num_segments = int(frames_metadata["segmentCount"])
     # num_sensors = frames_metadata["sensorCount"]
     # num_joints = frames_metadata["jointCount"]
     # num_frames = len(normal_frames)
@@ -64,11 +159,6 @@ def load_mvnx_into_blender(
         orientations.append([fo[i:i + 4]
                              for i in range(0, 4 * num_segments, 4)])
         positions.append([fp[i:i + 3] for i in range(0, 3 * num_segments, 3)])
-    print([len(x) for x in orientations], len(orientations))
-    print([len(x) for x in positions], len(positions))
-
-
-
 
 
 
@@ -79,23 +169,49 @@ def load_mvnx_into_blender(
     # TODO: 1. create the armature for the skeleton analogously to the BVH, in tpose
     # 2. create the keyframes and fill them with the quaternions, analogously to the BVH.
     # 3. details like rescaling, more UI, TIME PRECISION...
+
+    segments, forest = parse_skeleton(mvnx, FULL_BVH_HUMAN, KEYPOINTS_TO_MVNX)
     
+
 
     bpy.ops.object.select_all(action='DESELECT')
     arm_data = bpy.data.armatures.new(mvnx_filename)
     arm_ob = bpy.data.objects.new(mvnx_filename, arm_data)
 
-    for i in range(num_segments):
-        seg = segments[i]
-        print(seg.attrib["label"], seg.attrib["id"], seg.points)
+    # l = []
+    # for i in range(num_segments):
+    #     seg = segments[i]
+    #     # print(seg.attrib["label"], seg.attrib["id"], seg.points)
+        
 
-    #     context.collection.objects.link(arm_ob)
-    #     arm_ob.select_set(True)
-    #     context.view_layer.objects.active = arm_ob
-    #     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-    #     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    #     bvh_nodes_list = sorted_nodes(bvh_nodes)
+    context.collection.objects.link(arm_ob)
+    arm_ob.select_set(True)
+    context.view_layer.objects.active = arm_ob
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    #
+    bones = []
+    for i in range(10):
+        bone = arm_data.edit_bones.new("bone_%d" % i)
+        bones.append(bone)
+        bone.head = (0, 0, i)  # (x, y, z) in meters
+        bone.tail = (0, 0, i+1)
+        bone.use_connect = True
+        try:
+            bone.parent = bones[-2]
+        except:
+            print("!!!!!!!!!!!!!!!!!!!!!")
 
+
+#             bvh_node.temp.parent = bvh_node.parent.temp
+
+#             # Set the connection state
+#             if(
+#                     (not bvh_node.has_loc) and
+#                     (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
+#                     (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)
+#             ):
+#                 bvh_node.temp.use_connect = True
 
 
     ### END OF SANDBOX

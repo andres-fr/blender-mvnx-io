@@ -186,18 +186,18 @@ class Mvnx:
           frame outputs are relational collections of dictionaries that can be
           formatted into tabular form.
         """
-        def str_to_vec(x):
-            """
-            Converts a node with a text like '1.23, 2.34 ...' into a list
-            like [1.23, 2.34, ...]
-            """
-            return [float(y) for y in x.text.split(" ")]
-
         def frame_to_dict(frame, is_normal):
             """
             A frame node has a dict of ``attribs`` and a dict of ``items``.
             This function merges both and returns a single python dict
             """
+            def str_to_vec(x):
+                """
+                Converts a node with a text like '1.23, 2.34 ...' into a list
+                like [1.23, 2.34, ...]
+                """
+                return [float(y) for y in x.text.split(" ")]
+
             d = {**{k: str_to_vec(v) for k, v in frame.__dict__.items()},
                  **frame.attrib}
             d["time"] = int(d["time"])  # ms since start, i.e. ms_i - ms_0

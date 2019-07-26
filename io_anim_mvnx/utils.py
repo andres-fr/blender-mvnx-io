@@ -249,3 +249,21 @@ def rot_euler_degrees(rot_x, rot_y, rot_z, order="XYZ"):
       gradians) and rotation order.
     """
     return Euler((radians(rot_x), radians(rot_y), radians(rot_z)), order)
+
+
+def str_to_vec(s):
+    """
+    Converts a string like '1.23, 2.34 ...' into a list
+    like [1.23, 2.34, ...]
+    """
+    return [float(x) for x in s.split(" ")]
+
+def is_number(s):
+    """
+    :returns: True iff s is a number.
+    """
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
