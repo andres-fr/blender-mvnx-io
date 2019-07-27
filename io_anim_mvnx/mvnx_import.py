@@ -89,9 +89,12 @@ class BoneNode:
     def __init__(self, name, offsets, children=[]):
         """
         """
+        self.parent = self
         self.name = name
         self.offsets = offsets
         self.children = children
+        for ch in self.children:
+            ch.parent = self
 
     def __str__(self):
         return "<BoneNode: %s=%s>" % (self.name, str(self.offsets))
@@ -102,9 +105,9 @@ def make_bonenode_forest(name_tree, offsets):
     """
     if isinstance(name_tree, str):
         return [BoneNode(name_tree,
-                         [str_to_vec(x) for x in offsets[name_tree]])]
+                         [Vector(str_to_vec(x)) for x in offsets[name_tree]])]
     else:
-        roots = [BoneNode(k, [str_to_vec(x) for x in offsets[k]],
+        roots = [BoneNode(k, [Vector(str_to_vec(x)) for x in offsets[k]],
                           make_bonenode_forest(v, offsets))
                  for k, v in name_tree.items()]
         return roots
@@ -122,10 +125,45 @@ def parse_skeleton(mvnx, skeleton=FULL_BVH_HUMAN,
     # a dict in the form {"Head": ["1 2 3", "4 5 6"], "Hips": ["0 0 0"], ...}
     skel_to_offsets = {k: [offsets[v[i:i+2]] for i in range(0, len(v), 2)]
                        for k, v in skel_to_mvnx_map.items()}
-
     forest = make_bonenode_forest(skeleton, skel_to_offsets)
     return segments, forest
 
+
+def create_blender_figure(bone_node, arm_data, parent=None,
+                          root_head=Vector((-0.01, 0, 0))):
+    """
+    """
+    # if BoneNode has no children, we expect 2 offsets
+    if not bone_node.children:
+        # expect 2 offsets:
+        offs1, offs2 = bone_node.offsets
+        b = arm_data.edit_bones.new(bone_node.name + "Top")
+        b.use_connect = True
+        if parent is not None:
+            b.parent = parent
+            b.head = parent.tail
+        else:  # handle the root-without-children case
+            b.head = offs1
+        b.tail = b.head + offs2
+        return b
+    else:
+        # expect 1 offset only:
+        offs = bone_node.offsets[0]
+        # handle the root-with-children case:
+        if parent is None:
+            parent = arm_data.edit_bones.new(bone_node.name)
+            parent.head = root_head
+            parent.tail = offs
+            #
+        for ch in bone_node.children:
+            b = arm_data.edit_bones.new(ch.name)
+            b.use_connect = True
+            b.parent = parent
+            b.head = parent.tail
+            b.tail = b.head + ch.offsets[0]
+            #
+            create_blender_figure(ch, arm_data, b, root_head)
+        return parent
 
 
 def load_mvnx_into_blender(
@@ -162,7 +200,11 @@ def load_mvnx_into_blender(
 
 
 
-    
+
+
+
+
+
     ### SANDBOX
 
 
@@ -171,7 +213,7 @@ def load_mvnx_into_blender(
     # 3. details like rescaling, more UI, TIME PRECISION...
 
     segments, forest = parse_skeleton(mvnx, FULL_BVH_HUMAN, KEYPOINTS_TO_MVNX)
-    
+
 
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -182,7 +224,7 @@ def load_mvnx_into_blender(
     # for i in range(num_segments):
     #     seg = segments[i]
     #     # print(seg.attrib["label"], seg.attrib["id"], seg.points)
-        
+
 
     context.collection.objects.link(arm_ob)
     arm_ob.select_set(True)
@@ -190,17 +232,24 @@ def load_mvnx_into_blender(
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     #
-    bones = []
-    for i in range(10):
-        bone = arm_data.edit_bones.new("bone_%d" % i)
-        bones.append(bone)
-        bone.head = (0, 0, i)  # (x, y, z) in meters
-        bone.tail = (0, 0, i+1)
-        bone.use_connect = True
-        try:
-            bone.parent = bones[-2]
-        except:
-            print("!!!!!!!!!!!!!!!!!!!!!")
+
+
+
+
+
+    figures = [create_blender_figure(b, arm_data) for b in forest]
+    print(">>>>>>>>>>>>>>>", figures)
+    # bones = []
+    # for i in range(10):
+    #     bone = arm_data.edit_bones.new("bone_%d" % i)
+    #     bones.append(bone)
+    #     bone.head = (0, 0, i)  # (x, y, z) in meters
+    #     bone.tail = (0, 0, i+1)
+    #     bone.use_connect = True
+    #     try:
+    #         bone.parent = bones[-2]
+    #     except:
+    #         print("!!!!!!!!!!!!!!!!!!!!!")
 
 
 #             bvh_node.temp.parent = bvh_node.parent.temp
