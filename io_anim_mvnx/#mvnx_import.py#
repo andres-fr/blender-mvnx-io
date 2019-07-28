@@ -24,7 +24,7 @@ from .utils import str_to_vec, is_number
 # Chest -> L5: head = parent.tail, tail=head+ segment.path[joints.jL5S1.connector1].pos_b
 # Chest2 -> L3: head = parent.tail, tail=head + segment.path[joints.jL4L3.connector1].pos_b
 
-# how is the tree defined? in joints, the first part of each connector1->connector2 tells the parenthood.
+# how is the tree defined? in joints, the first part of each connector1->connector2 tells the parenthood.6
 
 # 1. create hips as defined
 # 2. joint jL5S1 corresponds to chest. its connector1 is the route
