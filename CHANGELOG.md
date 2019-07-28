@@ -20,3 +20,4 @@ All notable changes to this project will be documented in this file.
 * Importing MVNX in a BVH-alike fashion: just skeleton and angles
 * Compatibility with MakeHuman?
 * CI with blender?
+* Adapt skeleton depending on config like mvnx.subject.attrib["configuration"] = "UpperBody"
