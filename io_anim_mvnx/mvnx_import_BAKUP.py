@@ -44,57 +44,142 @@ from .utils import str_to_vec, is_number
 # ## HELPERS
 # #############################################################################
 
-def set_bone_head_and_tail(bone, segment_points, joints,
-                           root_points=["pHipOrigin"],
-                           leaf_points=["pTopOfHead",
-                                        "pRightTopOfHand", "pLeftTopOfHand",
-                                        "pRightToe", "pLeftToe"]):
-    """
-    :param bone: an EditBone
-    :param segment_points: A dict of dicts that allows to find an offset given a
-      joint connector. Expected form: {seg_name: {p_name: 3d_vector, ...}, ...}.
-    :param joints: A list with elements in the form (conn1, conn2) in the joint
-      order given by the MVNX file.
+KEYPOINTS_TO_MVNX = {"Hips": ("Pelvis", "pHipOrigin"),  # 100y   100z   100x
+                     #
+                     "Chest": ("Pelvis", "jL5S1"),
+                     "Chest2": ("L5", "jL4L3"),
+                     "Chest3": ("L3", "jL1T12"),
+                     "Chest4": ("T12", "jT9T8"),
+                     "Neck": ("T8", "jT1C7"),
+                     "Head": ("Neck", "jC1Head",
+                              "Head", "pTopOfHead"),
+                     #
+                     "RightCollar": ("T8", "jRightT4Shoulder"),
+                     "RightShoulder": ("RightShoulder", "jRightShoulder"),
+                     "RightElbow": ("RightUpperArm", "jRightElbow"),
+                     "RightWrist": ("RightForeArm", "jRightWrist",
+                                    "RightHand", "pRightTopOfHand"),
+                     #
+                     "LeftCollar": ("T8", "jLeftT4Shoulder"),
+                     "LeftShoulder": ("LeftShoulder", "jLeftShoulder"),
+                     "LeftElbow": ("LeftUpperArm", "jLeftElbow"),
+                     "LeftWrist": ("LeftForeArm", "jLeftWrist",
+                                   "LeftHand", "pLeftTopOfHand"),
+                     #
+                     "RightHip": ("Pelvis", "jRightHip"),
+                     "RightKnee": ("RightUpperLeg", "jRightKnee"),
+                     "RightAnkle": ("RightLowerLeg", "jRightAnkle"),
+                     "RightToe": ("RightFoot", "jRightBallFoot",
+                                  "RightToe", "pRightToe"),
+                     #
+                     "LeftHip": ("Pelvis", "jLeftHip"),
+                     "LeftKnee": ("LeftUpperLeg", "jLeftKnee"),
+                     "LeftAnkle": ("LeftLowerLeg", "jLeftAnkle"),
+                     "LeftToe": ("LeftFoot", "jLeftBallFoot",
+                                 "LeftToe", "pLeftToe")}
 
-    For a given bone, this function reads the information of its parent and,
-    given some MVNX data and assumptions, calculates its head and tail
-    positions.
 
-    .. warning::
-      This function assumes the following:
-      1. If the bone has a parent, it can be found under bone.parent.
-      2. The head and tail of the parent have been already properly set.
-      3. If this bone is a root, its segment will have a point with
-         a label in root_points.
-      4. If this bone is a leaf, its segment will have a point with
-         a label in leaf_points.
+FULL_BVH_HUMAN = {"Hips":
+                  {"Chest":
+                   {"Chest2":
+                    {"Chest3":
+                     {"Chest4":
+                      {"Neck": "Head",
+                       "RightCollar":
+                       {"RightShoulder": {"RightElbow": "RightWrist"}},
+                       "LeftCollar":
+                       {"LeftShoulder": {"LeftElbow": "LeftWrist"}}
+                      }
+                     }
+                    }
+                   },
+                   "RightHip": {"RightKnee": {"RightAnkle": "RightToe"}},
+                   "LeftHip": {"LeftKnee": {"LeftAnkle": "LeftToe"}}}}
+
+class BoneNode:
     """
-    b_name = bone.name
-    # find head:
-    if bone.parent is None:
-        # if root, we assume a point in root_points exists
-        bone.head = [v for k, v in segment_points[b_name].items()
-                     if k in root_points][0]
+    """
+    def __init__(self, name, offsets, children=[]):
+        """
+        """
+        self.parent = self
+        self.name = name
+        self.offsets = offsets
+        self.children = children
+        for ch in self.children:
+            ch.parent = self
+
+    def __str__(self):
+        return "<BoneNode: %s=%s>" % (self.name, str(self.offsets))
+
+def make_bonenode_forest(name_tree, offsets):
+    """
+    :param mvnx_segments: a dict
+    """
+    if isinstance(name_tree, str):
+        return [BoneNode(name_tree,
+                         [Vector(str_to_vec(x)) for x in offsets[name_tree]])]
     else:
-        bp_name = bone.parent.name
-        # get first joint that contains both this bone and parent
-        j = next((c1, c2) for (c1,c2) in joints if c1.split("/")[0] == bp_name
-                 and c2.split("/")[0] == b_name)
-        head_offs1 = segment_points[bp_name][j[0].split("/")[1]]
-        head_offs2 = segment_points[b_name][j[1].split("/")[1]]  # usually 000
-        bone.head = bone.parent.head + head_offs1 + head_offs2
-        if bone.head == bone.parent.tail:
-            bone.use_connect = True  # avoid connecting separated bones
-    # find tail:
-    if not bone.children:
-        # if leaf, we assume a point in leaf_points exists
-        tail_offs = [v for k, v in segment_points[bone.name].items()
-                       if k in leaf_points][0]
+        roots = [BoneNode(k, [Vector(str_to_vec(x)) for x in offsets[k]],
+                          make_bonenode_forest(v, offsets))
+                 for k, v in name_tree.items()]
+        return roots
+
+
+def parse_skeleton(mvnx, skeleton=FULL_BVH_HUMAN,
+                   skel_to_mvnx_map=KEYPOINTS_TO_MVNX):
+    """
+    """
+    segments = {s.attrib["id"]: s for s
+                in mvnx.mvnx.subject.segments.iterchildren()}
+    offsets = {(s.attrib["label"], p.attrib["label"]): p.pos_b.text
+               for s in segments.values()
+               for p in s.points.iterchildren()}
+    # a dict in the form {"Head": ["1 2 3", "4 5 6"], "Hips": ["0 0 0"], ...}
+    skel_to_offsets = {k: [offsets[v[i:i+2]] for i in range(0, len(v), 2)]
+                       for k, v in skel_to_mvnx_map.items()}
+    forest = make_bonenode_forest(skeleton, skel_to_offsets)
+    return segments, forest
+
+
+def create_blender_figure(bone_node, arm_data, parent=None,
+                          root_head=Vector((-0.01, 0, 0))):
+    """
+    """
+    # if BoneNode has no children, we expect 2 offsets
+    if not bone_node.children:
+        # expect 2 offsets:
+        offs1, offs2 = bone_node.offsets
+        b = arm_data.edit_bones.new(bone_node.name + "Top")
+        if parent is not None:
+            b.use_connect = True
+            b.parent = parent
+            b.head = parent.tail
+        else:  # handle the root-without-children case
+            b.head = offs1
+        b.tail = b.head + offs2
+        return b
     else:
-        # get first joint that contains this bone as parent
-        j = next((c1, c2) for (c1,c2) in joints if c1.split("/")[0] == b_name)
-        tail_offs = segment_points[b_name][j[0].split("/")[1]]
-    bone.tail = bone.head + tail_offs
+        # expect 1 offset only:
+        offs = bone_node.offsets[0]
+        # handle the root-with-children case:
+        if parent is None:
+            parent = arm_data.edit_bones.new(bone_node.name)
+            parent.head = root_head
+            parent.tail = offs
+            #
+        for ch in bone_node.children:
+            b = arm_data.edit_bones.new(ch.name)
+            b.use_connect = True
+            b.parent = parent
+            b.head = parent.tail
+            b.tail = b.head + ch.offsets[0]
+            #
+            create_blender_figure(ch, arm_data, b, root_head)
+        return parent
+
+
+
 
 def load_mvnx_into_blender(
         context,
@@ -114,26 +199,12 @@ def load_mvnx_into_blender(
     # load MVNX object and basic metadata
     mvnx_filename = basename(filepath)
     mvnx = Mvnx(filepath, mvnx_schema_path)
-    #
     frames_metadata, config_frames, normal_frames = mvnx.extract_frame_info()
-    #
-    segments = sorted(mvnx.mvnx.subject.segments.iterchildren(),
-                      key=lambda elt: int(elt.attrib["id"]))
-    seg2idx = {s.attrib["label"]: i for i, s in enumerate(segments)}
-    segment_points = {s: {p.attrib["label"]: Vector(str_to_vec(p.pos_b.text))
-                          for p in segments[i].points.iterchildren()}
-                      for s, i in seg2idx.items()}
-    joints = [(j.connector1.text, j.connector2.text)
-              for j in mvnx.mvnx.subject.joints.iterchildren()]
-
-    #
     num_segments = int(frames_metadata["segmentCount"])
     # num_sensors = frames_metadata["sensorCount"]
     # num_joints = frames_metadata["jointCount"]
     num_frames = len(normal_frames) + 1  # +1 for the tpose
     frame_rate = int(mvnx.mvnx.subject.attrib["frameRate"])
-    #
-    assert len(segments) == num_segments, "Inconsistent segmentCount?"
 
 
     # create armature and prepare to fill it
@@ -146,20 +217,12 @@ def load_mvnx_into_blender(
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-    # create one bone per segment
-    edit_bones = [arm_data.edit_bones.new(s.attrib["label"])
-                  for s in segments]
-    # create forest of bones using joints info:
-    for conn1, conn2 in joints:
-        parent_n = conn1.split("/")[0]
-        child_n = conn2.split("/")[0]
-        # set parenthood
-        edit_bones[seg2idx[child_n]].parent = edit_bones[seg2idx[parent_n]]
-    # set heads and tails:
-    for b in edit_bones:
-        set_bone_head_and_tail(b, segment_points, joints)
+    # fill the armature with the skeleton definition
+    segments, forest = parse_skeleton(mvnx, FULL_BVH_HUMAN, KEYPOINTS_TO_MVNX)
+    edit_bone_roots = [create_blender_figure(b, arm_data) for b in forest]
 
 
+    ### SANDBOX
 
     # ANIMATION
 
@@ -170,7 +233,6 @@ def load_mvnx_into_blender(
     action = bpy.data.actions.new(name=mvnx_filename)
     arm_ob.animation_data.action = action
     pose_bones = arm_ob.pose.bones
-    pb_roots = {b for b in pose_bones if b.parent is None}
 
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
     context.scene.render.fps_base = 1.0
@@ -186,14 +248,16 @@ def load_mvnx_into_blender(
     tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
 
 
-    # iterate over all bones to fill the animation sequence:
-    for bone_i, pb in enumerate(pose_bones):
-        print("filling sequence for bone", bone_i, pb.name)
+    # iterate over all bones:
+    for bone_i, pb in enumerate(pose_bones): # PROBLEM: ARE POSE_BONES IN THE SAME ORDER AS OUR MVNX SEQUENCES???
+        print(">>>>>>>>>>", bone_i, pb.name)
+        pb.rotation_mode = "QUATERNION"
+        rot_datapath = 'pose.bones["%s"].rotation_quaternion' %  pb.name
 
-        # handle location info: only root bones have it
-        has_location = pb in pb_roots
+        # handle location info
+        has_location = not pb.bone.use_connect
         if has_location:
-            # report({'INFO'}, "Setting location data for " + pb.name)
+            report({'INFO'}, "Setting location data for " + pb.name)
             loc_dp = 'pose.bones["%s"].location' %  pb.name  # datapath
             # iterate over 3 dimensions: x, y, z
             for dim_i in range(3):
@@ -203,98 +267,40 @@ def load_mvnx_into_blender(
                 for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
                     kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
 
-        # handle rotation info:
-        pb.rotation_mode = "QUATERNION"
-        rot_dp = 'pose.bones["%s"].rotation_quaternion' %  pb.name
-        for q_i in [3, 2, 1, 0]:  # [0, 1, 2, 3]:
-            curve = action.fcurves.new(data_path=rot_dp, index=q_i)
-            kf_points = curve.keyframe_points
-            kf_points.add(num_frames)
-            for frame_i, rot_frame in enumerate(orientations, 1):
-                kf_points[frame_i].co = (frame_i, rot_frame[bone_i][q_i])
-
-#                 for frame_i in range(num_frame):
-#                     keyframe_points[frame_i].co = (
-#                         time[frame_i],
-#                         rotate[frame_i][axis_i],
-#                     )
 
         # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
         # print(matts)
 
+        # asdf
 
-    # finally config curves, apply matrix and return armature
-    for c in action.fcurves:
-        # if IMPORT_LOOP:
-        #     pass  # 2.5 doenst have cyclic now?
-        for ckfp in c.keyframe_points:
-            ckfp.interpolation = "LINEAR"
-    # arm_ob.matrix_world = global_matrix
-    # bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-    return arm_ob
+    #     for i, bvh_node in enumerate(bvh_nodes_list):
+    #         pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
 
+    #         if bvh_node.has_loc:
+    #             # Not sure if there is a way to query this or access it in the
+    #             # PoseBone structure.
+    #             data_path = 'pose.bones["%s"].location' % pose_bone.name
 
-#             for frame_i in range(num_frame):
-#                 bvh_rot = bvh_node.anim_data[frame_i + skip_frame][3:]
+    #             location = [(0.0, 0.0, 0.0)] * num_frame
+    #             for frame_i in range(num_frame):
+    #                 bvh_loc = bvh_node.anim_data[frame_i + skip_frame][:3]
 
-#                 # apply rotation order and convert to XYZ
-#                 # note that the rot_order_str is reversed.
-#                 euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
-#                 bone_rotation_matrix = euler.to_matrix().to_4x4()
-#                 bone_rotation_matrix = (
-#                     bone_rest_matrix_inv @
-#                     bone_rotation_matrix @
-#                     bone_rest_matrix
-#                 )
+    #                 bone_translate_matrix = Matrix.Translation(
+    #                     Vector(bvh_loc) - bvh_node.rest_head_local)
+    #                 location[frame_i] = (bone_rest_matrix_inv @
+    #                                      bone_translate_matrix).to_translation()
 
-#                 if len(rotate[frame_i]) == 4:
-#                     rotate[frame_i] = bone_rotation_matrix.to_quaternion()
-#                 else:
-#                     rotate[frame_i] = bone_rotation_matrix.to_euler(
-#                         pose_bone.rotation_mode, prev_euler)
-#                     prev_euler = rotate[frame_i]
+    #             # For each location x, y, z.
+    #             for axis_i in range(3):
+    #                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
+    #                 keyframe_points = curve.keyframe_points
+    #                 keyframe_points.add(num_frame)
 
-#             # For each euler angle x, y, z (or quaternion w, x, y, z).
-#             for axis_i in range(len(rotate[0])):
-#                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
-#                 keyframe_points = curve.keyframe_points
-#                 keyframe_points.add(num_frame)
-
-#                 for frame_i in range(num_frame):
-#                     keyframe_points[frame_i].co = (
-#                         time[frame_i],
-#                         rotate[frame_i][axis_i],
-#                     )
-
-#     for cu in action.fcurves:
-#         if IMPORT_LOOP:
-#             pass  # 2.5 doenst have cyclic now?
-
-#         for bez in cu.keyframe_points:
-#             bez.interpolation = 'LINEAR'
-
-#     # finally apply matrix
-#     arm_ob.matrix_world = global_matrix
-#     bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-
-#     return arm_ob
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #                 for frame_i in range(num_frame):
+    #                     keyframe_points[frame_i].co = (
+    #                         time[frame_i],
+    #                         location[frame_i][axis_i],
+    #                     )
 
 
 
@@ -303,6 +309,13 @@ def load_mvnx_into_blender(
     # 2. create the keyframes and fill them with the quaternions, analogously to the BVH.
     # 3. details like rescaling, more UI, TIME PRECISION...
 
+    # 1. load the armature.data.bones[...].matrix_local for each bone in order, in case needs to be inverted
+    # 2. load the rotation quaternions from the MVNX and convert them to "matrix" using the API
+    # 3??
+
+
+    ### END OF SANDBOX
+    ###
 
 
 
@@ -564,21 +577,3 @@ def load_mvnx_into_blender(
 #     bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
 #     return arm_ob
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
