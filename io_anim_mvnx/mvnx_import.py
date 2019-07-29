@@ -169,7 +169,7 @@ def load_mvnx_into_blender(
     arm_ob.animation_data_create()
     action = bpy.data.actions.new(name=mvnx_filename)
     arm_ob.animation_data.action = action
-    pose_bones = arm_ob.pose.bones
+    pose_bones = [arm_ob.pose.bones[b.name] for b in edit_bones]
     pb_roots = {b for b in pose_bones if b.parent is None}
 
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
