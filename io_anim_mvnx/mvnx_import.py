@@ -24,13 +24,21 @@ from .utils import str_to_vec, is_number
 # Chest -> L5: head = parent.tail, tail=head+ segment.path[joints.jL5S1.connector1].pos_b
 # Chest2 -> L3: head = parent.tail, tail=head + segment.path[joints.jL4L3.connector1].pos_b
 
-# how is the tree defined? in joints, the first part of each connector1->connector2 tells the parenthood.
+# how is the tree defined? in joints, the first part of each connector1->connector2 tells the parenthood.6
 
 # 1. create hips as defined
 # 2. joint jL5S1 corresponds to chest. its connector1 is the route
 
 # <connector1>Pelvis/jL5S1</connector1>  # the tail
 # <connector2>L5/jL5S1</connector2>  # zeros...
+
+
+## IDEA:
+# 1. for each segment by id order, create an editbone with its name. make a list comp with the bones, and a dict name->bone (with a ref to the bone).
+# 2. The pelvis has head=user, tail=pHipOrigin.
+# 3. Then, for each mvnx.joint, the bone is the name of connector2. The head is the tail of the bone in connector1, and the tail is the head plus the sum of both entries.
+# 4. If the joints are followed in order, this will work. NO!! the leafs wont work...
+# POSSIBLE SOLUTION: 1. Instead of the extra "tail" for hips, pick the vertical segment from zero to Chest as hips. The important thing is that moving or rotating there should move/rotate everything! including the zero->hips segments. i.e. the 3 segments that come out of the origin should behave like a single rigid one. If the same is done for the "collars", the remaining 23 bones should be identical to the BVH ones and therefore have the same angles? check that!
 
 # #############################################################################
 # ## HELPERS
@@ -259,8 +267,7 @@ def load_mvnx_into_blender(
                 for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
                     kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
 
-    print({k: v.name for k, v in segments.items()})
-        
+
         # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
         # print(matts)
 
