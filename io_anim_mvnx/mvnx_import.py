@@ -183,44 +183,81 @@ def load_mvnx_into_blender(
         positions.append([fp[i:i + 3] for i in range(0, 3 * num_segments, 3)])
         orientations.append([fo[i:i + 4]
                              for i in range(0, 4 * num_segments, 4)])
-    tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
-
-
-    # iterate over all bones to fill the animation sequence:
-    for bone_i, pb in enumerate(pose_bones):
-        print("filling sequence for bone", bone_i, pb.name)
-
-        # handle location info: only root bones have it
+    # create one FCurve per data channel and fill them with empty <num_frames>
+    fcurves = {pb.name: {"loc": [], "ori": []} for pb in pose_bones}
+    for pb in pose_bones:
         has_location = pb in pb_roots
+        #
         if has_location:
-            # report({'INFO'}, "Setting location data for " + pb.name)
-            loc_dp = 'pose.bones["%s"].location' %  pb.name  # datapath
-            # iterate over 3 dimensions: x, y, z
-            for dim_i in range(3):
-                curve = action.fcurves.new(data_path=loc_dp, index=dim_i)
-                kf_points = curve.keyframe_points
+            loc_dp = 'pose.bones["%s"].location' % pb.name  # datapath
+            for dim_loc in range(3):
+                fcurve = action.fcurves.new(data_path=loc_dp, index=dim_loc)
+                fcurves[pb.name]["loc"].append(fcurve)
+                kf_points = fcurve.keyframe_points
                 kf_points.add(num_frames)  # t-pose will be at frame 0
-                for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
-                    kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
-
-        # handle rotation info:
+        # fill rotation fcurves
         pb.rotation_mode = "QUATERNION"
-        rot_dp = 'pose.bones["%s"].rotation_quaternion' %  pb.name
-        for q_i in [3, 2, 1, 0]:  # [0, 1, 2, 3]:
-            curve = action.fcurves.new(data_path=rot_dp, index=q_i)
-            kf_points = curve.keyframe_points
+        rot_dp = 'pose.bones["%s"].rotation_quaternion' % pb.name
+        for dim_rot in range(4):
+            fcurve = action.fcurves.new(data_path=rot_dp, index=dim_rot)
+            fcurves[pb.name]["ori"].append(fcurve)
+            kf_points = fcurve.keyframe_points
             kf_points.add(num_frames)
-            for frame_i, rot_frame in enumerate(orientations, 1):
-                kf_points[frame_i].co = (frame_i, rot_frame[bone_i][q_i])
 
-#                 for frame_i in range(num_frame):
-#                     keyframe_points[frame_i].co = (
-#                         time[frame_i],
-#                         rotate[frame_i][axis_i],
-#                     )
+    # fill the t-pose
+    tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
+    print(tpose_frame)
+    for pb_name, fc_dd in fcurves.items():
+        pb_idx = seg2idx[pb_name]
+        pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
+        for loc_idx, loc_fc in enumerate(fc_dd["loc"]):
+            tpose_loc = tpose_frame["position"][pb_idx_3 + loc_idx]
+            loc_fc.keyframe_points[0].co.y = tpose_loc
 
-        # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
-        # print(matts)
+        for ori_idx, ori_fc in zip((0, 3, 1, 2), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
+            tpose_ori = tpose_frame["orientation"][pb_idx_4 + ori_idx]
+            if ori_idx==2:
+                tpose_ori *= -1
+            ori_fc.keyframe_points[0].co.y = tpose_ori
+
+
+# access existing blender fcurve by bone name?
+
+#     # iterate over all bones to fill the animation sequence:
+#     for bone_i, pb in enumerate(pose_bones):
+#         print("filling sequence for bone", bone_i, pb.name)
+#         # handle location info: only root bones have it
+#         has_location = pb in pb_roots
+#         if has_location:
+#             print(">>>>>>> has location:", pb.name)
+#             # report({'INFO'}, "Setting location data for " + pb.name)
+#             loc_dp = 'pose.bones["%s"].location' % pb.name  # datapath
+#             # iterate over 3 dimensions: x, y, z
+#             for dim_i in range(3):
+#                 curve = action.fcurves.new(data_path=loc_dp, index=dim_i)
+#                 kf_points = curve.keyframe_points
+#                 kf_points.add(num_frames)  # t-pose will be at frame 0
+#                 for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
+#                     kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
+
+# #         # handle rotation info:
+# #         pb.rotation_mode = "QUATERNION"
+# #         rot_dp = 'pose.bones["%s"].rotation_quaternion' %  pb.name
+# #         for q_i in [3, 2, 1, 0]:  # [0, 1, 2, 3]:
+# #             curve = action.fcurves.new(data_path=rot_dp, index=q_i)
+# #             kf_points = curve.keyframe_points
+# #             kf_points.add(num_frames)
+# #             for frame_i, rot_frame in enumerate(orientations, 1):
+# #                 kf_points[frame_i].co = (frame_i, rot_frame[bone_i][q_i])
+
+# # #                 for frame_i in range(num_frame):
+# # #                     keyframe_points[frame_i].co = (
+# # #                         time[frame_i],
+# # #                         rotate[frame_i][axis_i],
+# # #                     )
+
+# #         # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
+# #         # print(matts)
 
 
     # finally config curves, apply matrix and return armature
@@ -228,7 +265,7 @@ def load_mvnx_into_blender(
         # if IMPORT_LOOP:
         #     pass  # 2.5 doenst have cyclic now?
         for ckfp in c.keyframe_points:
-            ckfp.interpolation = "LINEAR"
+            ckfp.interpolation = "CONSTANT" #  "LINEAR"
     # arm_ob.matrix_world = global_matrix
     # bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
     return arm_ob
