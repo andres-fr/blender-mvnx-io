@@ -210,15 +210,35 @@ def load_mvnx_into_blender(
     for pb_name, fc_dd in fcurves.items():
         pb_idx = seg2idx[pb_name]
         pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
-        for loc_idx, loc_fc in enumerate(fc_dd["loc"]):
+        for loc_idx, loc_fc in zip((0, 2, 1), fc_dd["loc"]):  # enumerate(fc_dd["loc"]):
             tpose_loc = tpose_frame["position"][pb_idx_3 + loc_idx]
+            if loc_idx == 1:
+                tpose_loc *= -1
             loc_fc.keyframe_points[0].co.y = tpose_loc
 
-        for ori_idx, ori_fc in zip((0, 3, 1, 2), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
+        for ori_idx, ori_fc in zip((0, 3, 2, 1), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
             tpose_ori = tpose_frame["orientation"][pb_idx_4 + ori_idx]
-            if ori_idx==2:
+            if ori_idx == 3:
                 tpose_ori *= -1
             ori_fc.keyframe_points[0].co.y = tpose_ori
+
+ 
+# MVNX MEANING: X=NORTH, Y=WEST, Z=UP. Q0=?, Q1=BEND_TO_NORTH , Q2=TWIST, Q3=TILT_TO_RIGHT
+
+
+# BUT IN BLENDER POSE HIPS, THE FOLLOWING HOLDS: X=NORTH, Y=UP, Z=EAST.
+#                                                Q1=TILT_TO_RIGHT, Q2=TWIST, Q3=BACKBEND_TO_NORTH
+# so if we just feed the MVNX xyz positions straight to blender hips, will go up instead of west, east instead of up.
+# and if we feed the q0q1q2q3 to blender, it will interpret bend_to_north as tilt_to_right, and tilt_to_right as# backbend_to_north
+
+
+# SOLUTION: feed the position as follows: b_x, b_y, b_z = mvn_x, mvn_z, -mvn_y
+#           and the quat as follows b_q0, b_q1, b_q2, b_q3 = mvn_q0, -mvn_q3, mvn_q2, mvn_q1
+
+## NOT REALLY: IT TURNS OUT THAT THE POSITIONS ARE IN POSE BONE COORDINATES BUT THE QUATERNIONS ARE IN GLOBAL??
+TODO: INVESTIGATE
+
+
 
 
 # access existing blender fcurve by bone name?
