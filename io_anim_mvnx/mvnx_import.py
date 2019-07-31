@@ -10,10 +10,18 @@ __author__ = "Andres FR"
 from os.path import basename
 #
 import bpy
-from mathutils import Vector, Quaternion  # , Euler
+from mathutils import Vector, Quaternion, Matrix # , Euler
 #
 from .mvnx import Mvnx
 from .utils import str_to_vec, is_number
+
+
+# #############################################################################
+# ## TODO
+# #############################################################################
+
+
+# 3. details like rescaling, more UI, TIME PRECISION...
 
 # #############################################################################
 # ## GLOBALS
@@ -199,13 +207,30 @@ def load_mvnx_into_blender(
         :returns: same vector expressed in terms of the bone basis. If the
           output is applied to the bone, it will appear in the global g_loc.
         """
-        g = g_loc.copy()
-        g.rotate(eb_matrices_inv[bone_name])
+        # this was the impl in the BVH plugin
+        eb = get_edit_bone(bone_name)
+        bone_transl_mat = Matrix.Translation(g_loc - eb.head)
+        g = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
+        # # this was my naive impl, assuming bone is at origin:
+        # g = g_loc.copy()
+        # # since eb_mat rotates from global to bone coords, inv goes back.
+        # g.rotate(eb_matrices_inv[bone_name])
         return g
 
-    # def global_quat_to_bone(g_quat, bone_name):
-    #     g = g_quat.copy()
-    #     g.rota
+    def global_quat_to_bone(g_quat, bone_name):
+        """
+        """
+        brm = g_quat.to_matrix().to_4x4() # q.conjugated().to_matrix().to_4x4
+        brm = eb_matrices_inv[bone_name] @ brm @ eb_matrices[bone_name]
+        g = brm.to_quaternion()
+        # this was my faulty impl, some orientations inverted??
+        # q = eb_matrices_inv[b_name].copy().to_quaternion()
+        # q.rotate(quat)
+        # q.rotate(eb_matrices[b_name].to_quaternion())
+        # quat = qqq
+        #
+        return g
+
 
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
     context.scene.render.fps_base = 1.0
@@ -258,15 +283,12 @@ def load_mvnx_into_blender(
 
         # for ori_idx, ori_fc in zip((0, 3, 2, 1), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
         ### pb_mat = get_pose_bone(b_name).matrix_basis
-        quat =  Quaternion(tpose_frame["orientation"][pb_idx_4: pb_idx_4+4])
-        qqq = eb_matrices_inv[b_name].copy().to_quaternion()
-        qqq.rotate(quat)
-        qqq.rotate(eb_matrices[b_name].to_quaternion())
-        quat = qqq
+        global_quat =  Quaternion(tpose_frame["orientation"][pb_idx_4: pb_idx_4+4])
+        bone_quat = global_quat_to_bone(global_quat, b_name)
 
         ### quat.rotate(get_pose_bone(b_name).matrix_basis.to_quaternion())
         # get_pose_bone(b_name).matrix_basis = quat.to_matrix().to_4x4()
-        for ori_fc, ori_entry in zip(fc_dd["ori"], quat):
+        for ori_fc, ori_entry in zip(fc_dd["ori"], bone_quat):
             ori_fc.keyframe_points[0].co.y = ori_entry
         # for ori_idx, ori_fc in enumerate(fc_dd["ori"]):
         #     tpose_ori = tpose_frame["orientation"][pb_idx_4 + ori_idx]
@@ -415,146 +437,6 @@ def load_mvnx_into_blender(
 
 
 
-
-
-
-
-
-
-    # TODO: 1. create the armature for the skeleton analogously to the BVH, in tpose
-    # 2. create the keyframes and fill them with the quaternions, analogously to the BVH.
-    # 3. details like rescaling, more UI, TIME PRECISION...
-
-
-
-
-
-
-
-
-# def bvh_node_dict2armature(
-#         context,
-#         bvh_name,
-#         bvh_nodes,
-#         bvh_frame_time,
-#         rotate_mode='XYZ',
-#         frame_start=1,
-#         IMPORT_LOOP=False,
-#         global_matrix=None,
-#         use_fps_scale=False,
-# ):
-
-#     if frame_start < 1:
-#         frame_start = 1
-
-#     # Add the new armature,
-#     scene = context.scene
-#     for obj in scene.objects:
-#         obj.select_set(False)
-
-#     arm_data = bpy.data.armatures.new(bvh_name)
-#     arm_ob = bpy.data.objects.new(bvh_name, arm_data)
-
-#     context.collection.objects.link(arm_ob)
-
-#     arm_ob.select_set(True)
-#     context.view_layer.objects.active = arm_ob
-
-#     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-#     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-
-#     bvh_nodes_list = sorted_nodes(bvh_nodes)
-
-#     # Get the average bone length for zero length bones, we may not use this.
-#     average_bone_length = 0.0
-#     nonzero_count = 0
-#     for bvh_node in bvh_nodes_list:
-#         l = (bvh_node.rest_head_local - bvh_node.rest_tail_local).length
-#         if l:
-#             average_bone_length += l
-#             nonzero_count += 1
-
-#     # Very rare cases all bones could be zero length???
-#     if not average_bone_length:
-#         average_bone_length = 0.1
-#     else:
-#         # Normal operation
-#         average_bone_length = average_bone_length / nonzero_count
-
-#     # XXX, annoying, remove bone.
-#     while arm_data.edit_bones:
-#         arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
-
-#     ZERO_AREA_BONES = []
-#     for bvh_node in bvh_nodes_list:
-
-#         # New editbone
-#         bone = bvh_node.temp = arm_data.edit_bones.new(bvh_node.name)
-
-#         bone.head = bvh_node.rest_head_world
-#         bone.tail = bvh_node.rest_tail_world
-
-#         # Zero Length Bones! (an exceptional case)
-#         if (bone.head - bone.tail).length < 0.001:
-#             print("\tzero length bone found:", bone.name)
-#             if bvh_node.parent:
-#                 ofs = bvh_node.parent.rest_head_local - bvh_node.parent.rest_tail_local
-#                 if ofs.length:  # is our parent zero length also?? unlikely
-#                     bone.tail = bone.tail - ofs
-#                 else:
-#                     bone.tail.y = bone.tail.y + average_bone_length
-#             else:
-#                 bone.tail.y = bone.tail.y + average_bone_length
-
-#             ZERO_AREA_BONES.append(bone.name)
-
-#     for bvh_node in bvh_nodes_list:
-#         if bvh_node.parent:
-#             # bvh_node.temp is the Editbone
-
-#             # Set the bone parent
-#             bvh_node.temp.parent = bvh_node.parent.temp
-
-#             # Set the connection state
-#             if(
-#                     (not bvh_node.has_loc) and
-#                     (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
-#                     (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)
-#             ):
-#                 bvh_node.temp.use_connect = True
-
-#     # Replace the editbone with the editbone name,
-#     # to avoid memory errors accessing the editbone outside editmode
-#     for bvh_node in bvh_nodes_list:
-#         bvh_node.temp = bvh_node.temp.name
-
-
-
-
-
-#     # Now Apply the animation to the armature
-
-#     # Get armature animation data
-#     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-#     pose = arm_ob.pose
-#     pose_bones = pose.bones
-
-#     if rotate_mode == 'NATIVE':
-#         for bvh_node in bvh_nodes_list:
-#             bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
-#             pose_bone = pose_bones[bone_name]
-#             pose_bone.rotation_mode = bvh_node.rot_order_str
-
-#     elif rotate_mode != 'QUATERNION':
-#         for pose_bone in pose_bones:
-#             pose_bone.rotation_mode = rotate_mode
-#     else:
-#         # Quats default
-#         pass
-
-#     context.view_layer.update()
-
 #     arm_ob.animation_data_create()
 #     action = bpy.data.actions.new(name=bvh_name)
 #     arm_ob.animation_data.action = action
@@ -575,28 +457,6 @@ def load_mvnx_into_blender(
 #         bone_rest_matrix.resize_4x4()
 #         bvh_node.temp = (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
 
-#         if 0 == num_frame:
-#             num_frame = len(bvh_node.anim_data)
-
-#     # Choose to skip some frames at the beginning. Frame 0 is the rest pose
-#     # used internally by this importer. Frame 1, by convention, is also often
-#     # the rest pose of the skeleton exported by the motion capture system.
-#     skip_frame = 1
-#     if num_frame > skip_frame:
-#         num_frame = num_frame - skip_frame
-
-#     # Create a shared time axis for all animation curves.
-#     time = [float(frame_start)] * num_frame
-#     if use_fps_scale:
-#         dt = scene.render.fps * bvh_frame_time
-#         for frame_i in range(1, num_frame):
-#             time[frame_i] += float(frame_i) * dt
-#     else:
-#         for frame_i in range(1, num_frame):
-#             time[frame_i] += float(frame_i)
-
-#     # print("bvh_frame_time = %f, dt = %f, num_frame = %d"
-#     #      % (bvh_frame_time, dt, num_frame]))
 
 #     for i, bvh_node in enumerate(bvh_nodes_list):
 #         pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
