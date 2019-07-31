@@ -149,6 +149,7 @@ def load_mvnx_into_blender(
     # create one bone per segment
     edit_bones = [arm_data.edit_bones.new(s.attrib["label"])
                   for s in segments]
+
     # create forest of bones using joints info:
     for conn1, conn2 in joints:
         parent_n = conn1.split("/")[0]
@@ -158,7 +159,6 @@ def load_mvnx_into_blender(
     # set heads and tails:
     for b in edit_bones:
         set_bone_head_and_tail(b, segment_points, joints)
-
 
 
     # ANIMATION
@@ -172,6 +172,41 @@ def load_mvnx_into_blender(
     pose_bones = [arm_ob.pose.bones[b.name] for b in edit_bones]
     pb_roots = {b for b in pose_bones if b.parent is None}
 
+    # the bone coordinate converters can already be retrieved
+    def get_edit_bone(eb_name):
+        """
+        """
+        return bpy.data.objects[mvnx_filename].data.bones[eb_name]
+
+    def get_pose_bone(pb_name):
+        """
+        """
+        return bpy.data.objects[mvnx_filename].pose.bones[pb_name]
+        # return pose_bones[seg2idx[pb_name]]
+
+
+    # these matrices convert from the bone coordinates to global.
+    eb_matrices = {b.name: get_edit_bone(b.name).matrix_local
+                   for b in edit_bones}
+    eb_matrices_inv = {k: v.inverted_safe() for k, v in eb_matrices.items()}
+    # these matrices express the pose rotation, relative to the eb_matrix
+    pb_matrices = {b.name: get_pose_bone(b.name).matrix_basis
+                   for b in pose_bones}
+
+    def global_loc_to_bone(g_loc, bone_name):
+        """
+        :param Vector g_loc: (x, y, z) global position vector
+        :returns: same vector expressed in terms of the bone basis. If the
+          output is applied to the bone, it will appear in the global g_loc.
+        """
+        g = g_loc.copy()
+        g.rotate(eb_matrices_inv[bone_name])
+        return g
+
+    # def global_quat_to_bone(g_quat, bone_name):
+    #     g = g_quat.copy()
+    #     g.rota
+
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
     context.scene.render.fps_base = 1.0
     context.scene.render.fps = frame_rate
@@ -183,6 +218,9 @@ def load_mvnx_into_blender(
         positions.append([fp[i:i + 3] for i in range(0, 3 * num_segments, 3)])
         orientations.append([fo[i:i + 4]
                              for i in range(0, 4 * num_segments, 4)])
+
+
+
     # create one FCurve per data channel and fill them with empty <num_frames>
     fcurves = {pb.name: {"loc": [], "ori": []} for pb in pose_bones}
     for pb in pose_bones:
@@ -207,78 +245,105 @@ def load_mvnx_into_blender(
     # fill the t-pose
     tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
     print(tpose_frame)
-    for pb_name, fc_dd in fcurves.items():
-        pb_idx = seg2idx[pb_name]
+    for b_name, fc_dd in fcurves.items():
+        pb_idx = seg2idx[b_name]
         pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
-        for loc_idx, loc_fc in zip((0, 2, 1), fc_dd["loc"]):  # enumerate(fc_dd["loc"]):
-            tpose_loc = tpose_frame["position"][pb_idx_3 + loc_idx]
-            if loc_idx == 1:
-                tpose_loc *= -1
-            loc_fc.keyframe_points[0].co.y = tpose_loc
-
-        for ori_idx, ori_fc in zip((0, 3, 2, 1), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
-            tpose_ori = tpose_frame["orientation"][pb_idx_4 + ori_idx]
-            if ori_idx == 3:
-                tpose_ori *= -1
-            ori_fc.keyframe_points[0].co.y = tpose_ori
-
- 
-# MVNX MEANING: X=NORTH, Y=WEST, Z=UP. Q0=?, Q1=BEND_TO_NORTH , Q2=TWIST, Q3=TILT_TO_RIGHT
+        # set location, if existing:
+        if fc_dd["loc"]:
+            global_loc = Vector(tpose_frame["position"][pb_idx_3: pb_idx_3+3])
+            bone_loc = global_loc_to_bone(global_loc, b_name)
+            for loc_fc, loc_entry in zip(fc_dd["loc"], bone_loc):  # zip((0, 2, 1), fc_dd["loc"]):  # enumerate(fc_dd["loc"]):
+                loc_fc.keyframe_points[0].co.y = loc_entry
 
 
-# BUT IN BLENDER POSE HIPS, THE FOLLOWING HOLDS: X=NORTH, Y=UP, Z=EAST.
-#                                                Q1=TILT_TO_RIGHT, Q2=TWIST, Q3=BACKBEND_TO_NORTH
-# so if we just feed the MVNX xyz positions straight to blender hips, will go up instead of west, east instead of up.
-# and if we feed the q0q1q2q3 to blender, it will interpret bend_to_north as tilt_to_right, and tilt_to_right as# backbend_to_north
+        # for ori_idx, ori_fc in zip((0, 3, 2, 1), fc_dd["ori"]):  # enumerate(fc_dd["ori"]):
+        ### pb_mat = get_pose_bone(b_name).matrix_basis
+        quat =  Quaternion(tpose_frame["orientation"][pb_idx_4: pb_idx_4+4])
+        qqq = eb_matrices_inv[b_name].copy().to_quaternion()
+        qqq.rotate(quat)
+        qqq.rotate(eb_matrices[b_name].to_quaternion())
+        quat = qqq
+
+        ### quat.rotate(get_pose_bone(b_name).matrix_basis.to_quaternion())
+        # get_pose_bone(b_name).matrix_basis = quat.to_matrix().to_4x4()
+        for ori_fc, ori_entry in zip(fc_dd["ori"], quat):
+            ori_fc.keyframe_points[0].co.y = ori_entry
+        # for ori_idx, ori_fc in enumerate(fc_dd["ori"]):
+        #     tpose_ori = tpose_frame["orientation"][pb_idx_4 + ori_idx]
+        #     ori_fc.keyframe_points[0].co.y = tpose_ori
 
 
-# SOLUTION: feed the position as follows: b_x, b_y, b_z = mvn_x, mvn_z, -mvn_y
-#           and the quat as follows b_q0, b_q1, b_q2, b_q3 = mvn_q0, -mvn_q3, mvn_q2, mvn_q1
+        #######################
+        # note that the rot_order_str is reversed.
+        #                 euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
+        #                 bone_rotation_matrix = euler.to_matrix().to_4x4()
+        #                 bone_rotation_matrix = (
+        #                     bone_rest_matrix_inv @
+        #                     bone_rotation_matrix @
+        #                     bone_rest_matrix
+        #                 )
+        
+        #                 if len(rotate[frame_i]) == 4:
+        #                     rotate[frame_i] = bone_rotation_matrix.to_quaternion()
+        ######################
 
-## NOT REALLY: IT TURNS OUT THAT THE POSITIONS ARE IN POSE BONE COORDINATES BUT THE QUATERNIONS ARE IN GLOBAL??
-TODO: INVESTIGATE
+
+        
+    # MVNX MEANING: X=NORTH, Y=WEST, Z=UP. Q0=?, Q1=BEND_TO_NORTH , Q2=TWIST, Q3=TILT_TO_RIGHT
 
 
+    # BUT IN BLENDER POSE HIPS, THE FOLLOWING HOLDS: X=NORTH, Y=UP, Z=EAST.
+    #                                                Q1=TILT_TO_RIGHT, Q2=TWIST, Q3=BACKBEND_TO_NORTH
+    # so if we just feed the MVNX xyz positions straight to blender hips, will go up instead of west, east instead of up.
+    # and if we feed the q0q1q2q3 to blender, it will interpret bend_to_north as tilt_to_right, and tilt_to_right as# backbend_to_north
+    
+    
+    # SOLUTION: feed the position as follows: b_x, b_y, b_z = mvn_x, mvn_z, -mvn_y
+    #           and the quat as follows b_q0, b_q1, b_q2, b_q3 = mvn_q0, -mvn_q3, mvn_q2, mvn_q1
 
-
-# access existing blender fcurve by bone name?
-
-#     # iterate over all bones to fill the animation sequence:
-#     for bone_i, pb in enumerate(pose_bones):
-#         print("filling sequence for bone", bone_i, pb.name)
-#         # handle location info: only root bones have it
-#         has_location = pb in pb_roots
-#         if has_location:
-#             print(">>>>>>> has location:", pb.name)
-#             # report({'INFO'}, "Setting location data for " + pb.name)
-#             loc_dp = 'pose.bones["%s"].location' % pb.name  # datapath
-#             # iterate over 3 dimensions: x, y, z
-#             for dim_i in range(3):
-#                 curve = action.fcurves.new(data_path=loc_dp, index=dim_i)
-#                 kf_points = curve.keyframe_points
-#                 kf_points.add(num_frames)  # t-pose will be at frame 0
-#                 for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
-#                     kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
-
-# #         # handle rotation info:
-# #         pb.rotation_mode = "QUATERNION"
-# #         rot_dp = 'pose.bones["%s"].rotation_quaternion' %  pb.name
-# #         for q_i in [3, 2, 1, 0]:  # [0, 1, 2, 3]:
-# #             curve = action.fcurves.new(data_path=rot_dp, index=q_i)
-# #             kf_points = curve.keyframe_points
-# #             kf_points.add(num_frames)
-# #             for frame_i, rot_frame in enumerate(orientations, 1):
-# #                 kf_points[frame_i].co = (frame_i, rot_frame[bone_i][q_i])
-
-# # #                 for frame_i in range(num_frame):
-# # #                     keyframe_points[frame_i].co = (
-# # #                         time[frame_i],
-# # #                         rotate[frame_i][axis_i],
-# # #                     )
-
-# #         # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
-# #         # print(matts)
-
+    ## NOT REALLY: IT TURNS OUT THAT THE POSITIONS ARE IN POSE BONE COORDINATES BUT THE QUATERNIONS ARE IN GLOBAL??
+    
+    
+    
+    
+    # access existing blender fcurve by bone name?
+    
+    #     # iterate over all bones to fill the animation sequence:
+    #     for bone_i, pb in enumerate(pose_bones):
+    #         print("filling sequence for bone", bone_i, pb.name)
+    #         # handle location info: only root bones have it
+    #         has_location = pb in pb_roots
+    #         if has_location:
+    #             print(">>>>>>> has location:", pb.name)
+    #             # report({'INFO'}, "Setting location data for " + pb.name)
+    #             loc_dp = 'pose.bones["%s"].location' % pb.name  # datapath
+    #             # iterate over 3 dimensions: x, y, z
+    #             for dim_i in range(3):
+    #                 curve = action.fcurves.new(data_path=loc_dp, index=dim_i)
+    #                 kf_points = curve.keyframe_points
+    #                 kf_points.add(num_frames)  # t-pose will be at frame 0
+    #                 for frame_i, pos_frame in enumerate(positions, 1):  # normal frames begin at 1 (0 is for t-pose)
+    #                     kf_points[frame_i].co = (frame_i, pos_frame[bone_i][dim_i])
+    
+    # #         # handle rotation info:
+    # #         pb.rotation_mode = "QUATERNION"
+    # #         rot_dp = 'pose.bones["%s"].rotation_quaternion' %  pb.name
+    # #         for q_i in [3, 2, 1, 0]:  # [0, 1, 2, 3]:
+    # #             curve = action.fcurves.new(data_path=rot_dp, index=q_i)
+    # #             kf_points = curve.keyframe_points
+    # #             kf_points.add(num_frames)
+    # #             for frame_i, rot_frame in enumerate(orientations, 1):
+    # #                 kf_points[frame_i].co = (frame_i, rot_frame[bone_i][q_i])
+    
+    # # #                 for frame_i in range(num_frame):
+    # # #                     keyframe_points[frame_i].co = (
+    # # #                         time[frame_i],
+    # # #                         rotate[frame_i][axis_i],
+    # # #                     )
+    
+    # #         # matts = [Quaternion(oo).to_matrix().to_4x4() for oo in o]
+    # #         # print(matts)
+    
 
     # finally config curves, apply matrix and return armature
     for c in action.fcurves:
