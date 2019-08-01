@@ -20,7 +20,6 @@ from mathutils import Euler  # , Vector
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty
 from bpy.types import PropertyGroup
-# import bpy
 #
 from . import __path__ as PACKAGE_ROOT_PATH
 

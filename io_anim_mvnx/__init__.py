@@ -20,6 +20,7 @@ import bpy
 #
 from .utils import OperatorToMenuManager, KeymapManager, ImportFilesCollection
 from .operators import ImportMVNX
+
 # #############################################################################
 # ## CONFIG
 # #############################################################################
@@ -42,11 +43,8 @@ bl_info = {
     "category": "Import-Export"}
 
 KEYMAPS = []
-# KEYMAPS = [{"op_name": MaximizeAreaView3d.bl_idname,
+# KEYMAPS = [{"op_name": SomeOpClass.bl_idname,
 #             "key": "THREE", "stroke_mode": "PRESS",
-#             "ctrl": True, "shift": True, "alt": False},
-#            {"op_name": CleanPurgeAndCreateBasicScene.bl_idname,
-#             "key": "ZERO", "stroke_mode": "PRESS",
 #             "ctrl": True, "shift": True, "alt": False}]
 
 
@@ -58,16 +56,10 @@ KEYMAPS = []
 classes = [ImportMVNX, ImportFilesCollection]  # , ExportMVNX]
 
 # # add Operators to registered classes
-# classes += [MaximizeAreaView3d,
-#             MaximizeAreaConsole,
-#             CleanAndPurgeScene,
-#             CreateBasicScene,
-#             CleanPurgeAndCreateBasicScene]
+# classes += [SomeOpClass]
 
 # # add Panels to registered classes
-# classes += [MY_PANEL_PT_MyPanel1,
-#             MY_PANEL_PT_MyPanel2,
-#             ASDF_PT_ExportPanel]
+# classes += [MY_PANEL_PT_MyPanel1]
 
 register_cl, unregister_cl = bpy.utils.register_classes_factory(classes)
 kmm = KeymapManager()
@@ -77,9 +69,12 @@ def register():
     """
     Main register function, called on startup by Blender
     """
+    # register all UI classes
     register_cl()
+    # register operators into keymaps
     for km_dict in KEYMAPS:
         kmm.register(bpy.context, **km_dict)
+    # register operators into menus
     omm.register(ImportMVNX, bpy.types.TOPBAR_MT_file_import)
     # omm.register(ExportMVNX, bpy.types.TOPBAR_MT_file_export)
 
@@ -88,6 +83,7 @@ def unregister():
     """
     Main unregister function, called on shutdown by Blender
     """
+    # unregister keymaps, menus and UI classes
     kmm.unregister()
     omm.unregister()
     unregister_cl()
