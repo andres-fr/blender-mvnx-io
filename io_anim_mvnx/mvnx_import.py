@@ -36,7 +36,8 @@ def set_bone_head_and_tail(bone, segment_points, joints,
                            root_points=["pHipOrigin"],
                            leaf_points=["pTopOfHead",
                                         "pRightTopOfHand", "pLeftTopOfHand",
-                                        "pRightToe", "pLeftToe"]):
+                                        "pRightToe", "pLeftToe"],
+                           scale=1.0):
     """
     :param bone: an EditBone
     :param segment_points: A dict of dicts that allows to find an offset given a
@@ -48,7 +49,8 @@ def set_bone_head_and_tail(bone, segment_points, joints,
       the first match in this list will be taken as bone.head.
     :param list leaf_points: If a given bone/segment is a leaf (has no
       children), the first match in this list will be taken as bone.tail.
-
+    :param float scale: A positive float by which head and tail vectors will
+      be multiplied.
     For a given bone, this function reads the information of its parent and,
     given some MVNX data and assumptions, calculates its head and tail
     positions.
@@ -66,6 +68,7 @@ def set_bone_head_and_tail(bone, segment_points, joints,
          will always be a good match (this happens e.g. if each leaf has
          a uniquely named leaf_point, which is usually the case).
     """
+    assert scale > 0, "Scale has to be positive!"
     b_name = bone.name
     # find head:
     if bone.parent is None:
@@ -79,6 +82,9 @@ def set_bone_head_and_tail(bone, segment_points, joints,
                  if c1 == bp_name and c2 == b_name)
         head_offs1 = segment_points[bp_name][j[0][1]]
         head_offs2 = segment_points[b_name][j[1][1]]  # usually 000
+        if scale != 1.0:
+            head_offs1 *= 1 # scale
+            head_offs2 *= 1 # scale
         bone.head = bone.parent.head + head_offs1 + head_offs2
         if bone.head == bone.parent.tail:
             bone.use_connect = True  # avoid connecting separated bones
@@ -91,21 +97,23 @@ def set_bone_head_and_tail(bone, segment_points, joints,
         # get first joint that contains this bone as parent
         j = next(p1 for ((c1, p1), _) in joints if c1 == b_name)
         tail_offs = segment_points[b_name][j]
+    if scale != 1.0:
+        tail_offs *= scale
     bone.tail = bone.head + tail_offs
+    
 
-
-def glob_to_rel_quats(quaternions, joints, name_to_idx_map):
+def inherited_quats(quaternions, joints, name_to_idx_map):
     """
     :param list quaternions: [q1, q2, ...]
-    :param joints: A list of segment connections in the form
-      [(c1_ori, c1_dest), (c2_ori, c2_dest), ...], where the connections reflect
-      a tree and are giving in topological order.
+    :param joints: A list of segment connections in the form 
+      [(parent_name, child_name), ...]
     :param dict name_to_idx_map: A dict in the form {seg_name: idx, ...} where
       The quaternion for the segment seg_name can be found in quaternions[idx].
 
     Given the list of MVNX quaternions and their tree relations,
-    return a list with same shape, but each quaternion has been rotated
-    up its whole tree.
+    return a list with same shape, but each quaternion is expressed relative
+    to its parent. For that, it suffices the following calculation::
+      q_child_relative = q_parent_glob.conjugated() * q_child_glob
 
     .. warning::
       This function assumes that the joints are given topologically sorted,
@@ -114,31 +122,10 @@ def glob_to_rel_quats(quaternions, joints, name_to_idx_map):
       the roots, and going down the leafs in order).
     """
     result = [q.copy() for q in quaternions]
-
     for c_ori, c_dest in joints:
-        q_ori = quaternions[name_to_idx_map[c_ori]]
-        q_dest = result[name_to_idx_map[c_dest]]
-        q_dest.rotate(q_ori.conjugated())
+        q_ori_inv = quaternions[name_to_idx_map[c_ori]].conjugated()
+        result[name_to_idx_map[c_dest]].rotate(q_ori_inv)
     return result
-
-    # for c_ori, c_dest in joints:
-    #     mat_ori = quaternions[name_to_idx_map[c_ori]].to_matrix()
-    #     mat_dest = result[name_to_idx_map[c_dest]].to_matrix()
-    #     m = mat_ori.inverted() @ mat_dest
-    #     quaternions[name_to_idx_map[c_dest]] = m.to_quaternion()
-    # return quaternions
-
-    # print("\n\n\n")
-    # for c_ori, c_dest in joints:
-    #     q_ori = quaternions[name_to_idx_map[c_ori]]
-    #     q_dest = quaternions[name_to_idx_map[c_dest]]
-    #     print(">>>>>>>> rotating", c_dest, q_dest, " based on its parent", c_ori, q_ori)
-    #     q_dest.rotate(q_ori.conjugated())
-    #     print("       result:", quaternions[name_to_idx_map[c_dest]])
-    # print("\n\n\n\n!!!!!!!!!!!", quaternions)
-
-    # return quaternions
-
 
 # #############################################################################
 # ## IMPORTER
@@ -150,13 +137,14 @@ def load_mvnx_into_blender(
         mvnx_schema_path=None,
         # target='ARMATURE',
         # rotate_mode='NATIVE',
-        # global_scale=1.0,
+        scale=1.0,
         # use_cyclic=False,
         # frame_start=1,
         # global_matrix=None,
         # use_fps_scale=False,
         # update_scene_fps=False,
         # update_scene_duration=False,
+        inherit_rotations=False,
         report=print):
     """
     """
@@ -205,8 +193,8 @@ def load_mvnx_into_blender(
         edit_bones[seg2idx[child_n]].parent = edit_bones[seg2idx[parent_n]]
     # set heads and tails, as well as other edit bone properties:
     for b in edit_bones:
-        set_bone_head_and_tail(b, segment_points, joints)
-        # b.use_inherit_rotation = False  # True is better
+        set_bone_head_and_tail(b, segment_points, joints, scale=scale)
+        b.use_inherit_rotation = inherit_rotations
 
     # Animation part:
 
@@ -243,7 +231,7 @@ def load_mvnx_into_blender(
     # where (x, y, z) == (north, west, up).
     # We assume that Blender's right-hand coord system also has that exact
     # meaning, but the PoseBone rotations have to be given WITH RESPECT TO
-    # THE BONE. And the bone itself inherits the rotation from all its parents.
+    # THE BONE (this is so independently whether rotations are inherited).
     # Therefore, these two closures handle the conversion of location and
     # orientation information from MVNX to Blender formats.
     def global_loc_to_bone(g_loc, bone_name):
@@ -260,11 +248,20 @@ def load_mvnx_into_blender(
 
     def global_quat_to_bone(g_quat, bone_name):
         """
+        :param Quaternion g_quat: The quaternion orientation of a bone with
+          respect to a global frame
+
+        This function receives the orientation of the bone with respect to a
+        global frame, and computes the same orientation WITH RESPECT TO THE
+        REST POSE OF THE BONE. I.e.::
+          R = q_rest_to_g * g_quat * q_g_to_rest
+
+        This makes sense, since rotating global->rest and then applying R
+        is the same as rotating rest->global, applying g_quat and then rotating
+        global->rest.
         """
-        g_quat_mat = g_quat.to_matrix().to_4x4()
-        #
-        b = eb_matrices_inv[bone_name] @ g_quat_mat @ eb_matrices[bone_name]
-        return b.to_quaternion()
+        eb_quat = eb_matrices[bone_name].to_quaternion()
+        return eb_quat.conjugated().cross(g_quat).cross(eb_quat)
 
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
     context.scene.render.fps_base = 1.0
@@ -292,64 +289,44 @@ def load_mvnx_into_blender(
             kf_points.add(num_frames)  # f[0]=ident, f[1]=tpose
 
 
+    # fill the identity as frame[0] and tpose as frame[1]s
+    identity_frame = [f for f in config_frames if f["type"] == "identity"][0]
+    id_quats = [Quaternion(identity_frame["orientation"][i:i+4])
+                     for i in range(0, 4*num_segments, 4)]
+    #
+    tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
+    tp_quats = [Quaternion(tpose_frame["orientation"][i:i+4])
+                     for i in range(0, 4*num_segments, 4)]
+    if inherit_rotations:
+        id_quats = inherited_quats(id_quats, joints_lite, seg2idx)
+        tp_quats = inherited_quats(tp_quats, joints_lite, seg2idx)
 
-
-
-
-
-
-    
-    # # fill the identity as frame[0] and tpose as frame[1]s
-    # identity_frame = [f for f in config_frames if f["type"] == "identity"][0]
-    # id_quats_glob = [Quaternion(identity_frame["orientation"][i:i+4])
-    #                  for i in range(0, 4*num_segments, 4)]
-    # id_quats_rel = glob_to_rel_quats(id_quats_glob, joints_lite, seg2idx)
-    # #
-    # tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
-    # tp_quats_glob = [Quaternion(tpose_frame["orientation"][i:i+4])
-    #                  for i in range(0, 4*num_segments, 4)]
-    # tp_quats_rel = glob_to_rel_quats(tp_quats_glob, joints_lite, seg2idx)
-
-
-    # # identity_frame["orientation"] = [Quaternion(identity_frame["orientation"][i:i+4])
-    # #                                  for i in range(0, 4*num_segments, 4)]
-
-    # # glob_to_rel_quaternions(quaternions, joints, name_to_idx_map): asdf
-
-    
-    # for b_name, fc_dd in fcurves.items():
-    #     pb_idx = seg2idx[b_name]
-    #     pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
-    #     # set location, if existing:
-    #     if fc_dd["loc"]:
-    #         g_id_loc = Vector(identity_frame["position"][pb_idx_3: pb_idx_3+3])
-    #         b_id_loc = global_loc_to_bone(g_id_loc, b_name)
-    #         g_tp_loc = Vector(tpose_frame["position"][pb_idx_3: pb_idx_3+3])
-    #         b_tp_loc = global_loc_to_bone(g_tp_loc, b_name)
-    #         for loc_fc, loc_id, loc_tp in zip(fc_dd["loc"], b_id_loc, b_tp_loc):
-    #             loc_fc.keyframe_points[0].co.x = 0
-    #             loc_fc.keyframe_points[0].co.y = loc_id
-    #             loc_fc.keyframe_points[1].co.x = 1
-    #             loc_fc.keyframe_points[1].co.y = loc_tp
-
-    #     # set orientation
-    #     # g_id_q = Quaternion(identity_frame["orientation"][
-    #     #     pb_idx_4: pb_idx_4+4])
-    #     g_id_q = id_quats_rel[pb_idx]
-    #     b_id_q = global_quat_to_bone(g_id_q, b_name)
-    #     # g_tp_q = Quaternion(tpose_frame["orientation"][
-    #     #     pb_idx_4: pb_idx_4+4])
-    #     g_tp_q = tp_quats_rel[pb_idx]
-    #     b_tp_q = global_quat_to_bone(g_tp_q, b_name)
-    #     ### get_pose_bone(b_name).rotation_quaternion = b_tp_q
-    #     for ori_fc, ori_id, ori_tp in zip(fc_dd["ori"], b_id_q, b_tp_q):
-    #         ori_fc.keyframe_points[0].co.x = 0
-    #         ori_fc.keyframe_points[0].co.y = ori_id
-    #         ori_fc.keyframe_points[1].co.x = 1
-    #         ori_fc.keyframe_points[1].co.y = ori_tp
-
-
-
+    for b_name, fc_dd in fcurves.items():
+        pb_idx = seg2idx[b_name]
+        pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
+        # set location, if existing:
+        if fc_dd["loc"]:
+            g_id_loc = Vector(identity_frame["position"][pb_idx_3: pb_idx_3+3])
+            b_id_loc = global_loc_to_bone(g_id_loc, b_name)
+            g_tp_loc = Vector(tpose_frame["position"][pb_idx_3: pb_idx_3+3])
+            b_tp_loc = global_loc_to_bone(g_tp_loc, b_name)
+            for loc_fc, loc_id, loc_tp in zip(fc_dd["loc"], b_id_loc, b_tp_loc):
+                loc_fc.keyframe_points[0].co.x = 0
+                loc_fc.keyframe_points[0].co.y = loc_id
+                loc_fc.keyframe_points[1].co.x = 1
+                loc_fc.keyframe_points[1].co.y = loc_tp
+        # set orientation
+        g_id_q = id_quats[pb_idx]
+        b_id_q = global_quat_to_bone(g_id_q, b_name)
+        #
+        g_tp_q = tp_quats[pb_idx]
+        b_tp_q = global_quat_to_bone(g_tp_q, b_name)
+        ### get_pose_bone(b_name).rotation_quaternion = b_tp_q
+        for ori_fc, ori_id, ori_tp in zip(fc_dd["ori"], b_id_q, b_tp_q):
+            ori_fc.keyframe_points[0].co.x = 0
+            ori_fc.keyframe_points[0].co.y = ori_id
+            ori_fc.keyframe_points[1].co.x = 1
+            ori_fc.keyframe_points[1].co.y = ori_tp
 
 
     # fill frames (starting at 2 and incrementing by 1)
@@ -359,8 +336,9 @@ def load_mvnx_into_blender(
                      for i in range(0, 3 * num_segments, 3)]
         frame_ori = [Quaternion(frame["orientation"][i:i+4])
                      for i in range(0, 4*num_segments, 4)]
-        frame_ori_rel = glob_to_rel_quats(frame_ori, joints_lite, seg2idx)
-        for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori_rel):
+        if inherit_rotations:
+            frame_ori = inherited_quats(frame_ori, joints_lite, seg2idx)
+        for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
             b_name = pb.name
             # fill location curves
             loc_fcurves = fcurves[b_name]["loc"]
@@ -378,6 +356,7 @@ def load_mvnx_into_blender(
                 for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
                     ori_fc.keyframe_points[frame_i].co.x = frame_i
                     ori_fc.keyframe_points[frame_i].co.y = ori_entry
+
 
     # finally config curves, apply matrix and return armature
     for c in action.fcurves:

@@ -15,7 +15,7 @@ import bpy
 from bpy.types import Operator
 #
 from bpy.props import EnumProperty, StringProperty, CollectionProperty
-# from bpy.props import FloatProperty, IntProperty, BoolProperty
+from bpy.props import BoolProperty, FloatProperty  # , IntProperty
 from bpy_extras.io_utils import ImportHelper  # , ExportHelper
 from bpy_extras.io_utils import orientation_helper, axis_conversion
 #
@@ -35,7 +35,7 @@ files: CollectionProperty(type=ImportFilesCollection)
 
 
 # this decorator adds the axis entries as properties to the class.
-@orientation_helper(axis_forward="-Z", axis_up="Y")
+# @orientation_helper(axis_forward="-Z", axis_up="Y")
 class ImportMVNX(bpy.types.Operator, ImportHelper):
     """
     Load an MVNX motion capture file. This Operator is heavily inspired in the
@@ -57,6 +57,18 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         default=resolve_path("data", "mvnx_schema_mpiea.xsd"),
         name="MVNX Schema path",
         description="Validation schema for the MVNX file (optional)")
+    inherit_rotations: BoolProperty(
+        name="Inherit Rotations",
+        description="If true, rotating a bone will rotate all its children",
+        default=True,
+    )
+    scale: FloatProperty(
+        name="Scale",
+        description="Multiply every bone length by this value",
+        min=0.00001, max=1000000.0,
+        soft_min=0.001, soft_max=100.0,
+        default=1.0,
+    )
 
     # target: EnumProperty(
     #     items=(
@@ -66,13 +78,6 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
     #     name="Target",
     #     description="Import target type",
     #     default='ARMATURE',
-    # )
-    # global_scale: FloatProperty(
-    #     name="Scale",
-    #     description="Scale the BVH by this value",
-    #     min=0.0001, max=1000000.0,
-    #     soft_min=0.001, soft_max=100.0,
-    #     default=1.0,
     # )
     # frame_start: IntProperty(
     #     name="Start Frame",
@@ -139,7 +144,8 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         """
         # as_keywords returns a copy of the properties as a dict.
         keywords = self.as_keywords(ignore=(
-            "axis_forward", "axis_up", "filter_glob"))
+            # "axis_forward", "axis_up",
+            "filter_glob",))
         if not self.mvnx_schema_path:
             keywords["mvnx_schema_path"] = None
         # afwd = self.axis_forward
