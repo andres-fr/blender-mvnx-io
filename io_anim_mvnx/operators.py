@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-This module contains ubclasses from ``bpy.types.Operator`` defining
+This module contains subclasses from ``bpy.types.Operator`` defining
 user-callable functors. Operators can also be embedded in Panels and
 other UI elements.
 """

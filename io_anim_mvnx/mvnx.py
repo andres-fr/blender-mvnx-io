@@ -230,3 +230,21 @@ class Mvnx:
         assert all([s is not None for s in segments]),\
             "Segments aren't ordered by id?"
         return segments
+
+    def extract_joints(self):
+        """
+        :returns: A tuple (X, Y). The element X is a list of the joint names
+          ordered as they appear in the MVNX file.
+          The element Y is a list in the original MVNX ordering, in the form
+          [((seg_ori, point_ori), (seg_dest, point_dest)), ...], where each
+          element contains 4 strings summarizing the origin->destiny of a
+          connection.
+        """
+        names, connectors = [], []
+        for j in self.mvnx.subject.joints.iterchildren():
+            names.append(j.attrib["label"])
+            #
+            seg_ori, point_ori = j.connector1.text.split("/")
+            seg_dest, point_dest = j.connector2.text.split("/")
+            connectors.append(((seg_ori, point_ori), (seg_dest, point_dest)))
+        return names, connectors
