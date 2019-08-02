@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_anim_mvnx.mvnx_import &mdash; io_anim_mvnx 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> io_anim_mvnx
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../io_anim_mvnx.html">io_anim_mvnx package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">io_anim_mvnx</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../io_anim_mvnx.html">io_anim_mvnx</a> &raquo;</li>
+        
+      <li>io_anim_mvnx.mvnx_import</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for io_anim_mvnx.mvnx_import</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the required functionality to import an MVNX file as a</span>
+<span class="sd">moving set of bones into Blender.</span>
+
+<span class="sd">It allows for different options regarding their connectivity, scale...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>  <span class="c1"># inspired in the official Blender BVH importer</span>
+
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
+<span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">bpy</span>
+<span class="kn">from</span> <span class="nn">mathutils</span> <span class="k">import</span> <span class="n">Vector</span><span class="p">,</span> <span class="n">Quaternion</span><span class="p">,</span> <span class="n">Matrix</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">.mvnx</span> <span class="k">import</span> <span class="n">Mvnx</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">str_to_vec</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="set_bone_head_and_tail"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx_import.set_bone_head_and_tail">[docs]</a><span class="k">def</span> <span class="nf">set_bone_head_and_tail</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="n">segment_points</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span>
+                           <span class="n">root_points</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pHipOrigin&quot;</span><span class="p">],</span>
+                           <span class="n">leaf_points</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pTopOfHead&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;pRightTopOfHand&quot;</span><span class="p">,</span> <span class="s2">&quot;pLeftTopOfHand&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;pRightToe&quot;</span><span class="p">,</span> <span class="s2">&quot;pLeftToe&quot;</span><span class="p">],</span>
+                           <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param bone: an EditBone</span>
+<span class="sd">    :param segment_points: A dict of dicts that allows to find an offset given</span>
+<span class="sd">      a joint connector. Expected: {seg_name: {p_name: 3d_vector, ...}, ...}.</span>
+<span class="sd">    :param joints: A list in the original MVNX ordering, in the form</span>
+<span class="sd">      [((seg_ori, point_ori), (seg_dest, point_dest)), ...], where each element</span>
+<span class="sd">      contains 4 strings summarizing the origin-&gt;destiny of a connection.</span>
+<span class="sd">    :param list root_points: If a given bone/segment is root (has no parent),</span>
+<span class="sd">      the first match in this list will be taken as bone.head.</span>
+<span class="sd">    :param list leaf_points: If a given bone/segment is a leaf (has no</span>
+<span class="sd">      children), the first match in this list will be taken as bone.tail.</span>
+<span class="sd">    :param float scale: A positive float by which head and tail vectors will</span>
+<span class="sd">      be multiplied.</span>
+
+<span class="sd">    For a given bone, this function reads the information of its parent and,</span>
+<span class="sd">    given some MVNX data and assumptions, calculates its head and tail</span>
+<span class="sd">    positions.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">      This function assumes the following:</span>
+<span class="sd">        1. If the bone has a parent, it can be found under bone.parent.</span>
+<span class="sd">        2. The head and tail of the parent have been already properly set.</span>
+<span class="sd">        3. If this bone is a root, its segment will have a point with</span>
+<span class="sd">           a label in root_points.</span>
+<span class="sd">        4. If this bone is a leaf, its segment will have a point with</span>
+<span class="sd">           a label in leaf_points.</span>
+<span class="sd">        5. For a given bone, there aren&#39;t any possible collisions between the</span>
+<span class="sd">           different root or head_points, i.e., the first match in the list</span>
+<span class="sd">           will always be a good match (this happens e.g. if each leaf has</span>
+<span class="sd">           a uniquely named leaf_point, which is usually the case).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">b_name</span> <span class="o">=</span> <span class="n">bone</span><span class="o">.</span><span class="n">name</span>
+    <span class="c1"># find head:</span>
+    <span class="k">if</span> <span class="n">bone</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># if root, we assume a point in root_points exists</span>
+        <span class="n">bone</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">segment_points</span><span class="p">[</span><span class="n">b_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">root_points</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">bone</span><span class="o">.</span><span class="n">head</span> <span class="o">*=</span> <span class="n">scale</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bp_name</span> <span class="o">=</span> <span class="n">bone</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
+        <span class="c1"># get first joint that contains both this bone and parent</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(((</span><span class="n">c1</span><span class="p">,</span> <span class="n">p1</span><span class="p">),</span> <span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">p2</span><span class="p">))</span> <span class="k">for</span> <span class="p">((</span><span class="n">c1</span><span class="p">,</span> <span class="n">p1</span><span class="p">),</span> <span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">p2</span><span class="p">))</span> <span class="ow">in</span> <span class="n">joints</span>
+                 <span class="k">if</span> <span class="n">c1</span> <span class="o">==</span> <span class="n">bp_name</span> <span class="ow">and</span> <span class="n">c2</span> <span class="o">==</span> <span class="n">b_name</span><span class="p">)</span>
+        <span class="c1"># head_offs = offset from parent to this plus extra offset (usually 0)</span>
+        <span class="n">head_offs</span> <span class="o">=</span> <span class="n">segment_points</span><span class="p">[</span><span class="n">bp_name</span><span class="p">][</span><span class="n">j</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># parent&#39;s offs</span>
+        <span class="n">head_offs</span> <span class="o">+=</span> <span class="n">segment_points</span><span class="p">[</span><span class="n">b_name</span><span class="p">][</span><span class="n">j</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>  <span class="c1"># extra offset</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">head_offs</span> <span class="o">*=</span> <span class="n">scale</span>
+        <span class="n">bone</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">bone</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">+</span> <span class="n">head_offs</span>
+        <span class="k">if</span> <span class="n">bone</span><span class="o">.</span><span class="n">head</span> <span class="o">==</span> <span class="n">bone</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">tail</span><span class="p">:</span>
+            <span class="n">bone</span><span class="o">.</span><span class="n">use_connect</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># avoid connecting separated bones</span>
+    <span class="c1"># find tail:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bone</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+        <span class="c1"># if leaf, we assume a point in leaf_points exists</span>
+        <span class="n">tail_offs</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">segment_points</span><span class="p">[</span><span class="n">b_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">leaf_points</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># get first joint that contains this bone as parent</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">p1</span> <span class="k">for</span> <span class="p">((</span><span class="n">c1</span><span class="p">,</span> <span class="n">p1</span><span class="p">),</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">joints</span> <span class="k">if</span> <span class="n">c1</span> <span class="o">==</span> <span class="n">b_name</span><span class="p">)</span>
+        <span class="n">tail_offs</span> <span class="o">=</span> <span class="n">segment_points</span><span class="p">[</span><span class="n">b_name</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">tail_offs</span> <span class="o">*=</span> <span class="n">scale</span>
+    <span class="n">bone</span><span class="o">.</span><span class="n">tail</span> <span class="o">=</span> <span class="n">bone</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">+</span> <span class="n">tail_offs</span></div>
+
+
+<div class="viewcode-block" id="global_to_inherited_quats"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx_import.global_to_inherited_quats">[docs]</a><span class="k">def</span> <span class="nf">global_to_inherited_quats</span><span class="p">(</span><span class="n">quaternions</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">name_to_idx_map</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param list quaternions: [q1, q2, ...]</span>
+<span class="sd">    :param joints: A list of segment connections in the form</span>
+<span class="sd">      [(parent_name, child_name), ...]</span>
+<span class="sd">    :param dict name_to_idx_map: A dict in the form {seg_name: idx, ...} where</span>
+<span class="sd">      The quaternion for the segment seg_name can be found in quaternions[idx].</span>
+
+<span class="sd">    Given the list of MVNX quaternions and their tree relations,</span>
+<span class="sd">    return a list with same shape, but each quaternion is expressed relative</span>
+<span class="sd">    to its parent. For that, it suffices the following calculation::</span>
+
+<span class="sd">      q_child_relative = q_parent_glob.conjugated() * q_child_glob</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">      This function assumes that the joints are given topologically sorted,</span>
+<span class="sd">      i.e. that all parents prior to the current connection have been already</span>
+<span class="sd">      visited when iterating the joint list from left to right (starting with</span>
+<span class="sd">      the roots, and going down the leafs in order).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">quaternions</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">c_ori</span><span class="p">,</span> <span class="n">c_dest</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">:</span>
+        <span class="n">q_ori_inv</span> <span class="o">=</span> <span class="n">quaternions</span><span class="p">[</span><span class="n">name_to_idx_map</span><span class="p">[</span><span class="n">c_ori</span><span class="p">]]</span><span class="o">.</span><span class="n">conjugated</span><span class="p">()</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">name_to_idx_map</span><span class="p">[</span><span class="n">c_dest</span><span class="p">]]</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">q_ori_inv</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## IMPORT ROUTINES</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="load_mvnx_into_blender"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx_import.load_mvnx_into_blender">[docs]</a><span class="k">def</span> <span class="nf">load_mvnx_into_blender</span><span class="p">(</span>
+        <span class="n">context</span><span class="p">,</span>
+        <span class="n">filepath</span><span class="p">,</span>
+        <span class="n">mvnx_schema_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">connectivity</span><span class="o">=</span><span class="s1">&#39;CONNECTED&#39;</span><span class="p">,</span>  <span class="c1"># &#39;INDIVIDUAL&#39;</span>
+        <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">report</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span>
+        <span class="n">frame_start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">inherit_rotations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">add_identity_pose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">add_t_pose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># sanity check</span>
+    <span class="k">assert</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Scale has to be positive!&quot;</span>
+
+    <span class="c1"># load MVNX object and basic metadata</span>
+    <span class="n">mvnx_filename</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="n">mvnx</span> <span class="o">=</span> <span class="n">Mvnx</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">extract_frame_info</span><span class="p">()</span>
+    <span class="n">all_frames</span> <span class="o">=</span> <span class="n">normal_frames</span>
+    <span class="k">if</span> <span class="n">add_t_pose</span><span class="p">:</span>
+        <span class="n">tpose_frame</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">config_frames</span> <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;tpose&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">all_frames</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tpose_frame</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">add_identity_pose</span><span class="p">:</span>
+        <span class="n">id_frame</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">config_frames</span> <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;identity&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">all_frames</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">id_frame</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mvnx</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">(),</span>
+                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">elt</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">elt</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+    <span class="n">seg2idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">)}</span>
+    <span class="n">segment_points</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]:</span> <span class="n">Vector</span><span class="p">(</span><span class="n">str_to_vec</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">pos_b</span><span class="o">.</span><span class="n">text</span><span class="p">))</span>
+                          <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">()}</span>
+                      <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">seg2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">joints</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">extract_joints</span><span class="p">()</span>
+    <span class="n">joints_lite</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ori</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span> <span class="k">for</span> <span class="p">((</span><span class="n">ori</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">_</span><span class="p">))</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
+    <span class="c1">#</span>
+    <span class="n">num_segments</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span>
+    <span class="n">num_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_frames</span><span class="p">)</span>
+    <span class="n">report</span><span class="p">({</span><span class="s1">&#39;INFO&#39;</span><span class="p">},</span> <span class="s2">&quot;Loading </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2"> frames)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mvnx_filename</span><span class="p">,</span> <span class="n">num_frames</span><span class="p">))</span>
+    <span class="n">frame_rate</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mvnx</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;frameRate&quot;</span><span class="p">])</span>
+    <span class="c1">#</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_segments</span><span class="p">,</span> <span class="s2">&quot;Inconsistent segmentCount?&quot;</span>
+
+    <span class="c1"># create armature and prepare to fill it</span>
+    <span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;DESELECT&#39;</span><span class="p">)</span>
+    <span class="n">arm_data</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">armatures</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">mvnx_filename</span><span class="p">)</span>
+    <span class="n">arm_ob</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">mvnx_filename</span><span class="p">,</span> <span class="n">arm_data</span><span class="p">)</span>
+    <span class="n">arm_name</span> <span class="o">=</span> <span class="n">arm_ob</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">arm_ob</span><span class="p">)</span>
+    <span class="n">arm_ob</span><span class="o">.</span><span class="n">select_set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">view_layer</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">arm_ob</span>
+    <span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">mode_set</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;OBJECT&#39;</span><span class="p">,</span> <span class="n">toggle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">mode_set</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;EDIT&#39;</span><span class="p">,</span> <span class="n">toggle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># create one bone per segment</span>
+    <span class="n">edit_bones</span> <span class="o">=</span> <span class="p">[</span><span class="n">arm_data</span><span class="o">.</span><span class="n">edit_bones</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span>
+                  <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">]</span>
+
+    <span class="c1"># create forest of bones using joints info: note that at this point the</span>
+    <span class="c1"># &#39;connectivity&#39; variable is ignored, since the MVNX defines heads and</span>
+    <span class="c1"># tails assuming connected segments.</span>
+    <span class="k">for</span> <span class="n">parent_n</span><span class="p">,</span> <span class="n">child_n</span> <span class="ow">in</span> <span class="n">joints_lite</span><span class="p">:</span>  <span class="c1"># conn1, conn2 in joints:</span>
+        <span class="c1"># set parenthood</span>
+        <span class="n">edit_bones</span><span class="p">[</span><span class="n">seg2idx</span><span class="p">[</span><span class="n">child_n</span><span class="p">]]</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">edit_bones</span><span class="p">[</span><span class="n">seg2idx</span><span class="p">[</span><span class="n">parent_n</span><span class="p">]]</span>
+    <span class="c1"># set heads and tails, as well as other edit bone properties:</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edit_bones</span><span class="p">:</span>
+        <span class="n">set_bone_head_and_tail</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">segment_points</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">use_inherit_rotation</span> <span class="o">=</span> <span class="n">inherit_rotations</span>
+
+    <span class="c1"># Once heads and tails are set, and before EDIT mode is exited,</span>
+    <span class="c1"># remove parenthood if required by the connectivity</span>
+    <span class="k">if</span> <span class="n">connectivity</span> <span class="o">==</span> <span class="s2">&quot;INDIVIDUAL&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edit_bones</span><span class="p">:</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Animation part:</span>
+    <span class="c1"># prepare animation: create action and assign it to the armature</span>
+    <span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">mode_set</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;OBJECT&#39;</span><span class="p">,</span> <span class="n">toggle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">view_layer</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="n">arm_ob</span><span class="o">.</span><span class="n">animation_data_create</span><span class="p">()</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">mvnx_filename</span><span class="p">)</span>
+    <span class="n">arm_ob</span><span class="o">.</span><span class="n">animation_data</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="n">action</span>
+    <span class="n">pose_bones</span> <span class="o">=</span> <span class="p">[</span><span class="n">arm_ob</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">bones</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">]</span>
+    <span class="n">pb_roots</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pose_bones</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="c1"># one we switched out of EDIT mode, bones with coordinates can be retrieved</span>
+    <span class="k">def</span> <span class="nf">get_edit_bone</span><span class="p">(</span><span class="n">eb_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an EditBone by name in a way that matrix_local can be accessed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">arm_name</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">bones</span><span class="p">[</span><span class="n">eb_name</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_pose_bone</span><span class="p">(</span><span class="n">pb_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a PoseBone by name in a way that matrix_basis and rotation</span>
+<span class="sd">        data can be accessed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">arm_name</span><span class="p">]</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">bones</span><span class="p">[</span><span class="n">pb_name</span><span class="p">]</span>
+
+    <span class="c1"># these matrices convert from the global coordinates to bone in rest pos.</span>
+    <span class="n">eb_matrices</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">get_edit_bone</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">matrix_local</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                   <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pose_bones</span><span class="p">}</span>
+    <span class="c1"># the inverses convert from rest bone coords to global (inverted_safe?)</span>
+    <span class="n">eb_matrices_inv</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">inverted</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eb_matrices</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c1"># MVNX gives positions and orientations with respect to a earth-based frame</span>
+    <span class="c1"># where (x, y, z) == (north, west, up).</span>
+    <span class="c1"># We assume that Blender&#39;s right-hand coord system also has that exact</span>
+    <span class="c1"># meaning, but the PoseBone rotations have to be given WITH RESPECT TO</span>
+    <span class="c1"># THE BONE (this is so independently whether rotations are inherited).</span>
+    <span class="c1"># Therefore, these two closures handle the conversion of location and</span>
+    <span class="c1"># orientation information from MVNX to Blender formats.</span>
+    <span class="k">def</span> <span class="nf">global_loc_to_bone</span><span class="p">(</span><span class="n">g_loc</span><span class="p">,</span> <span class="n">bone_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param Vector g_loc: (x, y, z) global position vector</span>
+<span class="sd">        :returns: same vector expressed in terms of the bone basis. If the</span>
+<span class="sd">          output is applied to the bone, it will appear in the global g_loc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bone_transl_mat</span> <span class="o">=</span> <span class="n">Matrix</span><span class="o">.</span><span class="n">Translation</span><span class="p">(</span><span class="n">g_loc</span><span class="p">)</span>
+        <span class="n">b_loc</span> <span class="o">=</span> <span class="p">(</span><span class="n">eb_matrices_inv</span><span class="p">[</span><span class="n">bone_name</span><span class="p">]</span> <span class="o">@</span> <span class="n">bone_transl_mat</span><span class="p">)</span><span class="o">.</span><span class="n">to_translation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">b_loc</span>
+
+    <span class="k">def</span> <span class="nf">global_quat_to_bone</span><span class="p">(</span><span class="n">g_quat</span><span class="p">,</span> <span class="n">bone_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param Quaternion g_quat: The quaternion orientation of a bone with</span>
+<span class="sd">          respect to a global frame</span>
+
+<span class="sd">        This function receives the orientation of the bone with respect to a</span>
+<span class="sd">        global frame, and computes the same orientation WITH RESPECT TO THE</span>
+<span class="sd">        REST POSE OF THE BONE. I.e.::</span>
+<span class="sd">          R = q_rest_to_g * g_quat * q_g_to_rest</span>
+
+<span class="sd">        This makes sense, since rotating global-&gt;rest and then applying R</span>
+<span class="sd">        is the same as rotating rest-&gt;global, applying g_quat and then rotating</span>
+<span class="sd">        global-&gt;rest.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eb_quat</span> <span class="o">=</span> <span class="n">eb_matrices</span><span class="p">[</span><span class="n">bone_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_quaternion</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">eb_quat</span><span class="o">.</span><span class="n">conjugated</span><span class="p">()</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">g_quat</span><span class="p">)</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">eb_quat</span><span class="p">)</span>
+
+    <span class="c1"># create one FCurve per data channel and fill them with empty &lt;num_frames&gt;.</span>
+    <span class="c1"># Note that if connectivity==&quot;INDIVIDUAL&quot;, all bones are roots and have</span>
+    <span class="c1"># a location channel</span>
+    <span class="n">fcurves</span> <span class="o">=</span> <span class="p">{</span><span class="n">pb</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;ori&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">pose_bones</span><span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">pose_bones</span><span class="p">:</span>
+        <span class="n">has_location</span> <span class="o">=</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">pb_roots</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="n">has_location</span><span class="p">:</span>
+            <span class="n">loc_dp</span> <span class="o">=</span> <span class="s1">&#39;pose.bones[&quot;</span><span class="si">%s</span><span class="s1">&quot;].location&#39;</span> <span class="o">%</span> <span class="n">pb</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># datapath</span>
+            <span class="k">for</span> <span class="n">dim_loc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">fcurve</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">fcurves</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">data_path</span><span class="o">=</span><span class="n">loc_dp</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">dim_loc</span><span class="p">)</span>
+                <span class="n">fcurves</span><span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;loc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fcurve</span><span class="p">)</span>
+                <span class="n">kf_points</span> <span class="o">=</span> <span class="n">fcurve</span><span class="o">.</span><span class="n">keyframe_points</span>
+                <span class="n">kf_points</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">num_frames</span><span class="p">)</span>
+        <span class="c1"># fill rotation fcurves</span>
+        <span class="n">pb</span><span class="o">.</span><span class="n">rotation_mode</span> <span class="o">=</span> <span class="s2">&quot;QUATERNION&quot;</span>
+        <span class="n">rot_dp</span> <span class="o">=</span> <span class="s1">&#39;pose.bones[&quot;</span><span class="si">%s</span><span class="s1">&quot;].rotation_quaternion&#39;</span> <span class="o">%</span> <span class="n">pb</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">for</span> <span class="n">dim_rot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">fcurve</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">fcurves</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">data_path</span><span class="o">=</span><span class="n">rot_dp</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">dim_rot</span><span class="p">)</span>
+            <span class="n">fcurves</span><span class="p">[</span><span class="n">pb</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;ori&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fcurve</span><span class="p">)</span>
+            <span class="n">kf_points</span> <span class="o">=</span> <span class="n">fcurve</span><span class="o">.</span><span class="n">keyframe_points</span>
+            <span class="n">kf_points</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">num_frames</span><span class="p">)</span>
+
+    <span class="c1"># at this point we have everything set up and can start filling up the</span>
+    <span class="c1"># frames. Note that the global quaternion rotations given by the MVNX</span>
+    <span class="c1"># have to be inherited only if connectivity==&quot;CONNECTED&quot; and</span>
+    <span class="c1"># inherit_rotations is true.</span>
+    <span class="k">for</span> <span class="n">frame_i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_frames</span><span class="p">):</span>
+        <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_i</span> <span class="o">+</span> <span class="n">frame_start</span>
+        <span class="n">frame_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vector</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">:</span> <span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])</span>
+                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">num_segments</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
+        <span class="n">frame_ori</span> <span class="o">=</span> <span class="p">[</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">])</span>
+                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="o">*</span><span class="n">num_segments</span><span class="p">,</span> <span class="mi">4</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">connectivity</span> <span class="o">==</span> <span class="s2">&quot;CONNECTED&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">inherit_rotations</span><span class="p">:</span>
+            <span class="n">frame_ori</span> <span class="o">=</span> <span class="n">global_to_inherited_quats</span><span class="p">(</span><span class="n">frame_ori</span><span class="p">,</span> <span class="n">joints_lite</span><span class="p">,</span>
+                                                  <span class="n">seg2idx</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pb</span><span class="p">,</span> <span class="n">glob_loc</span><span class="p">,</span> <span class="n">glob_ori</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pose_bones</span><span class="p">,</span> <span class="n">frame_pos</span><span class="p">,</span> <span class="n">frame_ori</span><span class="p">):</span>
+            <span class="n">b_name</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">name</span>
+            <span class="c1"># fill location curves</span>
+            <span class="n">loc_fcurves</span> <span class="o">=</span> <span class="n">fcurves</span><span class="p">[</span><span class="n">b_name</span><span class="p">][</span><span class="s2">&quot;loc&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">loc_fcurves</span><span class="p">:</span>
+                <span class="c1"># this happens always, independently of rotation inheritance</span>
+                <span class="n">bone_loc</span> <span class="o">=</span> <span class="n">global_loc_to_bone</span><span class="p">(</span><span class="n">glob_loc</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">b_name</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">loc_fc</span><span class="p">,</span> <span class="n">loc_entry</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">loc_fcurves</span><span class="p">,</span> <span class="n">bone_loc</span><span class="p">):</span>
+                    <span class="n">loc_fc</span><span class="o">.</span><span class="n">keyframe_points</span><span class="p">[</span><span class="n">frame_i</span><span class="p">]</span><span class="o">.</span><span class="n">co</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">frame_time</span>
+                    <span class="n">loc_fc</span><span class="o">.</span><span class="n">keyframe_points</span><span class="p">[</span><span class="n">frame_i</span><span class="p">]</span><span class="o">.</span><span class="n">co</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">loc_entry</span>
+            <span class="c1"># fill orientation curves</span>
+            <span class="n">ori_fcurves</span> <span class="o">=</span> <span class="n">fcurves</span><span class="p">[</span><span class="n">b_name</span><span class="p">][</span><span class="s2">&quot;ori&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ori_fcurves</span><span class="p">:</span>
+                <span class="n">bone_ori</span> <span class="o">=</span> <span class="n">global_quat_to_bone</span><span class="p">(</span><span class="n">glob_ori</span><span class="p">,</span> <span class="n">b_name</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">ori_fc</span><span class="p">,</span> <span class="n">ori_entry</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ori_fcurves</span><span class="p">,</span> <span class="n">bone_ori</span><span class="p">):</span>
+                    <span class="n">ori_fc</span><span class="o">.</span><span class="n">keyframe_points</span><span class="p">[</span><span class="n">frame_i</span><span class="p">]</span><span class="o">.</span><span class="n">co</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">frame_time</span>
+                    <span class="n">ori_fc</span><span class="o">.</span><span class="n">keyframe_points</span><span class="p">[</span><span class="n">frame_i</span><span class="p">]</span><span class="o">.</span><span class="n">co</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">ori_entry</span>
+
+    <span class="c1"># Done with animation importing. Final global configs:</span>
+
+    <span class="c1"># set anim speed. actual_fps = scene.render.fps / scene.render.fps_base</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">render</span><span class="o">.</span><span class="n">fps_base</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">render</span><span class="o">.</span><span class="n">fps</span> <span class="o">=</span> <span class="n">frame_rate</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">frame_start</span><span class="p">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame_end</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame_start</span> <span class="o">+</span> <span class="n">num_frames</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1"># finally config curves, apply matrix and return armature</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">fcurves</span><span class="p">:</span>
+        <span class="c1"># if IMPORT_LOOP:</span>
+        <span class="c1">#     pass  # 2.5 doenst have cyclic now?</span>
+        <span class="k">for</span> <span class="n">ckfp</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">keyframe_points</span><span class="p">:</span>
+            <span class="n">ckfp</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="s2">&quot;CONSTANT&quot;</span>  <span class="c1"># &quot;LINEAR&quot; &quot;CUBIC&quot; &quot;BEZIER&quot;</span>
+    <span class="c1"># arm_ob.matrix_world = global_matrix</span>
+    <span class="c1"># bpy.ops.object.transform_apply(location=False,rotation=True,scale=False)</span>
+    <span class="k">return</span> <span class="n">arm_ob</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

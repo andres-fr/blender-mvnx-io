@@ -72,7 +72,7 @@
 
 
 \title{io\_anim\_mvnx}
-\date{Jul 25, 2019}
+\date{Aug 02, 2019}
 \release{0.1.0}
 \author{Andres FR}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -273,6 +273,22 @@ formatted into tabular form.
 
 \end{fulllineitems}
 
+\index{extract\_joints() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{extract\_joints()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.Mvnx.extract_joints}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{extract\_joints}}}{}{}~\begin{quote}\begin{description}
+\item[{Returns}] \leavevmode
+A tuple (X, Y). The element X is a list of the joint names
+ordered as they appear in the MVNX file.
+The element Y is a list in the original MVNX ordering, in the form
+{[}((seg\_ori, point\_ori), (seg\_dest, point\_dest)), …{]}, where each
+element contains 4 strings summarizing the origin-\textgreater{}destiny of a
+connection.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{extract\_segments() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{extract\_segments()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}}
 
 \begin{fulllineitems}
@@ -282,6 +298,178 @@ A list of the segment names in \sphinxcode{\sphinxupquote{self.mvnx.subject.segm
 ordered by id (starting at 1 and incrementing +1).
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+
+\section{io\_anim\_mvnx.mvnx\_import module}
+\label{\detokenize{io_anim_mvnx:module-io_anim_mvnx.mvnx_import}}\label{\detokenize{io_anim_mvnx:io-anim-mvnx-mvnx-import-module}}\index{io\_anim\_mvnx.mvnx\_import (module)@\spxentry{io\_anim\_mvnx.mvnx\_import}\spxextra{module}}
+This module contains the required functionality to import an MVNX file as a
+moving set of bones into Blender.
+
+It allows for different options regarding their connectivity, scale…
+\index{global\_to\_inherited\_quats() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{global\_to\_inherited\_quats()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx_import.global_to_inherited_quats}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx\_import.}}\sphinxbfcode{\sphinxupquote{global\_to\_inherited\_quats}}}{\emph{quaternions}, \emph{joints}, \emph{name\_to\_idx\_map}}{}~\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{quaternions}} (\sphinxstyleliteralemphasis{\sphinxupquote{list}}) \textendash{} {[}q1, q2, …{]}
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{joints}} \textendash{} A list of segment connections in the form
+{[}(parent\_name, child\_name), …{]}
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{name\_to\_idx\_map}} (\sphinxstyleliteralemphasis{\sphinxupquote{dict}}) \textendash{} A dict in the form \{seg\_name: idx, …\} where
+The quaternion for the segment seg\_name can be found in quaternions{[}idx{]}.
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+Given the list of MVNX quaternions and their tree relations,
+return a list with same shape, but each quaternion is expressed relative
+to its parent. For that, it suffices the following calculation:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{q\PYGZus{}child\PYGZus{}relative} \PYG{o}{=} \PYG{n}{q\PYGZus{}parent\PYGZus{}glob}\PYG{o}{.}\PYG{n}{conjugated}\PYG{p}{(}\PYG{p}{)} \PYG{o}{*} \PYG{n}{q\PYGZus{}child\PYGZus{}glob}
+\end{sphinxVerbatim}
+
+\begin{sphinxadmonition}{warning}{Warning:}
+This function assumes that the joints are given topologically sorted,
+i.e. that all parents prior to the current connection have been already
+visited when iterating the joint list from left to right (starting with
+the roots, and going down the leafs in order).
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+\index{load\_mvnx\_into\_blender() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{load\_mvnx\_into\_blender()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx_import.load_mvnx_into_blender}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx\_import.}}\sphinxbfcode{\sphinxupquote{load\_mvnx\_into\_blender}}}{\emph{context}, \emph{filepath}, \emph{mvnx\_schema\_path=None}, \emph{connectivity='CONNECTED'}, \emph{scale=1.0}, \emph{report=\textless{}built-in function print\textgreater{}}, \emph{frame\_start=0.0}, \emph{inherit\_rotations=True}, \emph{add\_identity\_pose=True}, \emph{add\_t\_pose=True}}{}
+\end{fulllineitems}
+
+\index{set\_bone\_head\_and\_tail() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{set\_bone\_head\_and\_tail()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx_import.set_bone_head_and_tail}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx\_import.}}\sphinxbfcode{\sphinxupquote{set\_bone\_head\_and\_tail}}}{\emph{bone, segment\_points, joints, root\_points={[}'pHipOrigin'{]}, leaf\_points={[}'pTopOfHead', 'pRightTopOfHand', 'pLeftTopOfHand', 'pRightToe', 'pLeftToe'{]}, scale=1.0}}{}~\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{bone}} \textendash{} an EditBone
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{segment\_points}} \textendash{} A dict of dicts that allows to find an offset given
+a joint connector. Expected: \{seg\_name: \{p\_name: 3d\_vector, …\}, …\}.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{joints}} \textendash{} A list in the original MVNX ordering, in the form
+{[}((seg\_ori, point\_ori), (seg\_dest, point\_dest)), …{]}, where each element
+contains 4 strings summarizing the origin-\textgreater{}destiny of a connection.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{root\_points}} (\sphinxstyleliteralemphasis{\sphinxupquote{list}}) \textendash{} If a given bone/segment is root (has no parent),
+the first match in this list will be taken as bone.head.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{leaf\_points}} (\sphinxstyleliteralemphasis{\sphinxupquote{list}}) \textendash{} If a given bone/segment is a leaf (has no
+children), the first match in this list will be taken as bone.tail.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{scale}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} A positive float by which head and tail vectors will
+be multiplied.
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+For a given bone, this function reads the information of its parent and,
+given some MVNX data and assumptions, calculates its head and tail
+positions.
+
+\begin{sphinxadmonition}{warning}{Warning:}\begin{description}
+\item[{This function assumes the following:}] \leavevmode\begin{enumerate}
+\def\theenumi{\arabic{enumi}}
+\def\labelenumi{\theenumi .}
+\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\item {} 
+If the bone has a parent, it can be found under bone.parent.
+
+\item {} 
+The head and tail of the parent have been already properly set.
+
+\item {} 
+If this bone is a root, its segment will have a point with
+a label in root\_points.
+
+\item {} 
+If this bone is a leaf, its segment will have a point with
+a label in leaf\_points.
+
+\item {} 
+For a given bone, there aren’t any possible collisions between the
+different root or head\_points, i.e., the first match in the list
+will always be a good match (this happens e.g. if each leaf has
+a uniquely named leaf\_point, which is usually the case).
+
+\end{enumerate}
+
+\end{description}
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+
+\section{io\_anim\_mvnx.operators module}
+\label{\detokenize{io_anim_mvnx:module-io_anim_mvnx.operators}}\label{\detokenize{io_anim_mvnx:io-anim-mvnx-operators-module}}\index{io\_anim\_mvnx.operators (module)@\spxentry{io\_anim\_mvnx.operators}\spxextra{module}}
+This module contains subclasses from \sphinxcode{\sphinxupquote{bpy.types.Operator}} defining
+user-callable functors. Operators can also be embedded in Panels and
+other UI elements.
+\index{ImportMVNX (class in io\_anim\_mvnx.operators)@\spxentry{ImportMVNX}\spxextra{class in io\_anim\_mvnx.operators}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX}}\pysigline{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{io\_anim\_mvnx.operators.}}\sphinxbfcode{\sphinxupquote{ImportMVNX}}}
+Bases: \sphinxcode{\sphinxupquote{bpy\_types.Operator}}, \sphinxcode{\sphinxupquote{bpy\_extras.io\_utils.ImportHelper}}
+
+Load an MVNX motion capture file. This Operator is heavily inspired in the
+oficially supported ImportBVH.
+\index{bl\_idname (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_idname}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.bl_idname}}\pysigline{\sphinxbfcode{\sphinxupquote{bl\_idname}}\sphinxbfcode{\sphinxupquote{ = 'import\_anim.mvnx'}}}
+\end{fulllineitems}
+
+\index{bl\_label (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_label}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.bl_label}}\pysigline{\sphinxbfcode{\sphinxupquote{bl\_label}}\sphinxbfcode{\sphinxupquote{ = 'Import MVNX'}}}
+\end{fulllineitems}
+
+\index{bl\_options (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_options}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.bl_options}}\pysigline{\sphinxbfcode{\sphinxupquote{bl\_options}}\sphinxbfcode{\sphinxupquote{ = \{'REGISTER', 'UNDO'\}}}}
+\end{fulllineitems}
+
+\index{bl\_rna (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.bl_rna}}\pysigline{\sphinxbfcode{\sphinxupquote{bl\_rna}}\sphinxbfcode{\sphinxupquote{ = \textless{}bpy\_struct, Struct("IMPORT\_ANIM\_OT\_mvnx")\textgreater{}}}}
+\end{fulllineitems}
+
+\index{execute() (io\_anim\_mvnx.operators.ImportMVNX method)@\spxentry{execute()}\spxextra{io\_anim\_mvnx.operators.ImportMVNX method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.execute}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{execute}}}{\emph{context}}{}
+Passes the properties captured by the UI to the load\_mvnx\_into\_blender
+function.
+:returns: \sphinxcode{\sphinxupquote{\{"FINISHED"\}}} if everything went OK.
 
 \end{fulllineitems}
 
@@ -355,6 +543,28 @@ encountering an error. Blender will react to that shutting down,
 making it look like a crash. Make sure the arguments are correct!
 \end{sphinxadmonition}
 
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{ImportFilesCollection (class in io\_anim\_mvnx.utils)@\spxentry{ImportFilesCollection}\spxextra{class in io\_anim\_mvnx.utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.utils.ImportFilesCollection}}\pysigline{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{io\_anim\_mvnx.utils.}}\sphinxbfcode{\sphinxupquote{ImportFilesCollection}}}
+Bases: \sphinxcode{\sphinxupquote{bpy\_types.PropertyGroup}}
+
+This property group allows to load multiple files from the UI file browser
+menu, by selecting them with shift pressed.
+Source and usage example:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+https://www.blender.org/forum/viewtopic.php?t=26470
+\end{sphinxVerbatim}
+\index{bl\_rna (io\_anim\_mvnx.utils.ImportFilesCollection attribute)@\spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.utils.ImportFilesCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.utils.ImportFilesCollection.bl_rna}}\pysigline{\sphinxbfcode{\sphinxupquote{bl\_rna}}\sphinxbfcode{\sphinxupquote{ = \textless{}bpy\_struct, Struct("ImportFilesCollection")\textgreater{}}}}
 \end{fulllineitems}
 
 
@@ -498,6 +708,17 @@ then empties the collection.
 
 \end{fulllineitems}
 
+\index{is\_number() (in module io\_anim\_mvnx.utils)@\spxentry{is\_number()}\spxextra{in module io\_anim\_mvnx.utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.utils.is_number}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.utils.}}\sphinxbfcode{\sphinxupquote{is\_number}}}{\emph{s}}{}~\begin{quote}\begin{description}
+\item[{Returns}] \leavevmode
+True iff s is a number.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{make\_timestamp() (in module io\_anim\_mvnx.utils)@\spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}}
 
 \begin{fulllineitems}
@@ -547,17 +768,33 @@ gradians) and rotation order.
 
 \end{fulllineitems}
 
+\index{str\_to\_vec() (in module io\_anim\_mvnx.utils)@\spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.utils.str_to_vec}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.utils.}}\sphinxbfcode{\sphinxupquote{str\_to\_vec}}}{\emph{s}}{}
+Converts a string like ‘1.23, 2.34 …’ into a list
+like {[}1.23, 2.34, …{]}
+
+\end{fulllineitems}
+
 
 
 \section{Module contents}
 \label{\detokenize{io_anim_mvnx:module-io_anim_mvnx}}\label{\detokenize{io_anim_mvnx:module-contents}}\index{io\_anim\_mvnx (module)@\spxentry{io\_anim\_mvnx}\spxextra{module}}
-Init file for the add-on.
+This add-on allows you to import motion capture data in MVNX format
+into Blender.
 
-To install it, make sure Blender’s Python is able to find it under
-addon\_utils.paths(), and that the Blender version matches to make it
-installable.
+After activating it, it features an operator that can be found in
+\sphinxcode{\sphinxupquote{{[}File \textgreater{} Import/Export{]}}}. Clicking on it will open a file navigator
+with a set of options to customize how the MVNX will be imported
+into a Blender armature.
 
-Alternatively, run this init file as a script from Blender.
+Position the mouse over the different options or read the corresponding
+docstrings to get more info about what do they do.
+
+To install this add-on, make sure Blender’s Python is able to find it
+under \sphinxcode{\sphinxupquote{addon\_utils.paths()}}, and that the Blender version matches to make
+it installable. Alternatively, run this init file as a script from Blender.
 \index{register() (in module io\_anim\_mvnx)@\spxentry{register()}\spxextra{in module io\_anim\_mvnx}}
 
 \begin{fulllineitems}
@@ -596,6 +833,8 @@ Main unregister function, called on shutdown by Blender
 \bigletter{i}
 \item\relax\sphinxstyleindexentry{io\_anim\_mvnx}\sphinxstyleindexpageref{io_anim_mvnx:\detokenize{module-io_anim_mvnx}}
 \item\relax\sphinxstyleindexentry{io\_anim\_mvnx.mvnx}\sphinxstyleindexpageref{io_anim_mvnx:\detokenize{module-io_anim_mvnx.mvnx}}
+\item\relax\sphinxstyleindexentry{io\_anim\_mvnx.mvnx\_import}\sphinxstyleindexpageref{io_anim_mvnx:\detokenize{module-io_anim_mvnx.mvnx_import}}
+\item\relax\sphinxstyleindexentry{io\_anim\_mvnx.operators}\sphinxstyleindexpageref{io_anim_mvnx:\detokenize{module-io_anim_mvnx.operators}}
 \item\relax\sphinxstyleindexentry{io\_anim\_mvnx.utils}\sphinxstyleindexpageref{io_anim_mvnx:\detokenize{module-io_anim_mvnx.utils}}
 \end{sphinxtheindex}
 

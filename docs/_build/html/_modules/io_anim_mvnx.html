@@ -153,13 +153,20 @@
 
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Init file for the add-on.</span>
+<span class="sd">This add-on allows you to import motion capture data in MVNX format</span>
+<span class="sd">into Blender.</span>
 
-<span class="sd">To install it, make sure Blender&#39;s Python is able to find it under</span>
-<span class="sd">addon_utils.paths(), and that the Blender version matches to make it</span>
-<span class="sd">installable.</span>
+<span class="sd">After activating it, it features an operator that can be found in</span>
+<span class="sd">``[File &gt; Import/Export]``. Clicking on it will open a file navigator</span>
+<span class="sd">with a set of options to customize how the MVNX will be imported</span>
+<span class="sd">into a Blender armature.</span>
 
-<span class="sd">Alternatively, run this init file as a script from Blender.</span>
+<span class="sd">Position the mouse over the different options or read the corresponding</span>
+<span class="sd">docstrings to get more info about what do they do.</span>
+
+<span class="sd">To install this add-on, make sure Blender&#39;s Python is able to find it</span>
+<span class="sd">under ``addon_utils.paths()``, and that the Blender version matches to make</span>
+<span class="sd">it installable. Alternatively, run this init file as a script from Blender.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -168,7 +175,8 @@
 
 <span class="kn">import</span> <span class="nn">bpy</span>
 <span class="c1">#</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">OperatorToMenuManager</span><span class="p">,</span> <span class="n">KeymapManager</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">OperatorToMenuManager</span><span class="p">,</span> <span class="n">KeymapManager</span><span class="p">,</span> <span class="n">ImportFilesCollection</span>
+<span class="kn">from</span> <span class="nn">.operators</span> <span class="k">import</span> <span class="n">ImportMVNX</span>
 
 <span class="c1"># #############################################################################</span>
 <span class="c1"># ## CONFIG</span>
@@ -180,21 +188,20 @@
 <span class="c1"># required by blender plugins</span>
 <span class="c1"># (see https://wiki.blender.org/wiki/Process/Addons/Guidelines/metainfo)</span>
 <span class="n">bl_info</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;io_anim_mvnx&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;MVNX animation I/O addon&quot;</span><span class="p">,</span>
     <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Andres FR&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;support&quot;</span><span class="p">:</span> <span class="s2">&quot;TESTING&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;version&quot;  # triggered problems with bumpversion. help is appreciated</span>
     <span class="s2">&quot;blender&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;File &gt; Import-Export&quot;</span><span class="p">,</span>
     <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;I/O functionality for MoCap data in MVNX format&quot;</span><span class="p">,</span>
-    <span class="c1"># &quot;warning&quot;: &quot;&quot;,</span>
     <span class="c1"># &#39;wiki_url&#39;: &quot;&quot;,</span>
-    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;I/O&quot;</span><span class="p">}</span>
+    <span class="c1"># &quot;warning&quot;: &quot;&quot;,</span>
+    <span class="s2">&quot;support&quot;</span><span class="p">:</span> <span class="s2">&quot;TESTING&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;Import-Export&quot;</span><span class="p">}</span>
 
 <span class="n">KEYMAPS</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="c1"># KEYMAPS = [{&quot;op_name&quot;: MaximizeAreaView3d.bl_idname,</span>
+<span class="c1"># KEYMAPS = [{&quot;op_name&quot;: SomeOpClass.bl_idname,</span>
 <span class="c1">#             &quot;key&quot;: &quot;THREE&quot;, &quot;stroke_mode&quot;: &quot;PRESS&quot;,</span>
-<span class="c1">#             &quot;ctrl&quot;: True, &quot;shift&quot;: True, &quot;alt&quot;: False},</span>
-<span class="c1">#            {&quot;op_name&quot;: CleanPurgeAndCreateBasicScene.bl_idname,</span>
-<span class="c1">#             &quot;key&quot;: &quot;ZERO&quot;, &quot;stroke_mode&quot;: &quot;PRESS&quot;,</span>
 <span class="c1">#             &quot;ctrl&quot;: True, &quot;shift&quot;: True, &quot;alt&quot;: False}]</span>
 
 
@@ -203,19 +210,13 @@
 <span class="c1"># #############################################################################</span>
 
 <span class="c1"># the classes to be registered</span>
-<span class="n">classes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ImportMVNX</span><span class="p">,</span> <span class="n">ImportFilesCollection</span><span class="p">]</span>  <span class="c1"># , ExportMVNX]</span>
 
 <span class="c1"># # add Operators to registered classes</span>
-<span class="c1"># classes += [MaximizeAreaView3d,</span>
-<span class="c1">#             MaximizeAreaConsole,</span>
-<span class="c1">#             CleanAndPurgeScene,</span>
-<span class="c1">#             CreateBasicScene,</span>
-<span class="c1">#             CleanPurgeAndCreateBasicScene]</span>
+<span class="c1"># classes += [SomeOpClass]</span>
 
 <span class="c1"># # add Panels to registered classes</span>
-<span class="c1"># classes += [MY_PANEL_PT_MyPanel1,</span>
-<span class="c1">#             MY_PANEL_PT_MyPanel2,</span>
-<span class="c1">#             ASDF_PT_ExportPanel]</span>
+<span class="c1"># classes += [MY_PANEL_PT_MyPanel1]</span>
 
 <span class="n">register_cl</span><span class="p">,</span> <span class="n">unregister_cl</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_classes_factory</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
 <span class="n">kmm</span> <span class="o">=</span> <span class="n">KeymapManager</span><span class="p">()</span>
@@ -226,16 +227,21 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main register function, called on startup by Blender</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># register all UI classes</span>
     <span class="n">register_cl</span><span class="p">()</span>
+    <span class="c1"># register operators into keymaps</span>
     <span class="k">for</span> <span class="n">km_dict</span> <span class="ow">in</span> <span class="n">KEYMAPS</span><span class="p">:</span>
-        <span class="n">kmm</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="o">**</span><span class="n">km_dict</span><span class="p">)</span></div>
-    <span class="c1"># omm.register(ObjectCursorArray, bpy.types.VIEW3D_MT_object)</span>
+        <span class="n">kmm</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="o">**</span><span class="n">km_dict</span><span class="p">)</span>
+    <span class="c1"># register operators into menus</span>
+    <span class="n">omm</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ImportMVNX</span><span class="p">,</span> <span class="n">bpy</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">TOPBAR_MT_file_import</span><span class="p">)</span></div>
+    <span class="c1"># omm.register(ExportMVNX, bpy.types.TOPBAR_MT_file_export)</span>
 
 
 <div class="viewcode-block" id="unregister"><a class="viewcode-back" href="../io_anim_mvnx.html#io_anim_mvnx.unregister">[docs]</a><span class="k">def</span> <span class="nf">unregister</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main unregister function, called on shutdown by Blender</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># unregister keymaps, menus and UI classes</span>
     <span class="n">kmm</span><span class="o">.</span><span class="n">unregister</span><span class="p">()</span>
     <span class="n">omm</span><span class="o">.</span><span class="n">unregister</span><span class="p">()</span>
     <span class="n">unregister_cl</span><span class="p">()</span></div>

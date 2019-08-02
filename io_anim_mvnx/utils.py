@@ -19,7 +19,6 @@ from math import radians  # degrees
 from mathutils import Euler  # , Vector
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty
-from bpy.types import PropertyGroup
 #
 from . import __path__ as PACKAGE_ROOT_PATH
 
@@ -229,6 +228,7 @@ class ImportFilesCollection(PropertyGroup):
     This property group allows to load multiple files from the UI file browser
     menu, by selecting them with shift pressed.
     Source and usage example::
+
       https://www.blender.org/forum/viewtopic.php?t=26470
     """
     name: StringProperty(name="File Path",
@@ -256,6 +256,7 @@ def str_to_vec(s):
     like [1.23, 2.34, ...]
     """
     return [float(x) for x in s.split(" ")]
+
 
 def is_number(s):
     """

@@ -12,6 +12,22 @@ io\_anim\_mvnx.mvnx module
    :undoc-members:
    :show-inheritance:
 
+io\_anim\_mvnx.mvnx\_import module
+----------------------------------
+
+.. automodule:: io_anim_mvnx.mvnx_import
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+io\_anim\_mvnx.operators module
+-------------------------------
+
+.. automodule:: io_anim_mvnx.operators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 io\_anim\_mvnx.utils module
 ---------------------------
 

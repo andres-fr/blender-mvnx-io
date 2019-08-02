@@ -3,13 +3,20 @@
 
 
 """
-Init file for the add-on.
+This add-on allows you to import motion capture data in MVNX format
+into Blender.
 
-To install it, make sure Blender's Python is able to find it under
-addon_utils.paths(), and that the Blender version matches to make it
-installable.
+After activating it, it features an operator that can be found in
+``[File > Import/Export]``. Clicking on it will open a file navigator
+with a set of options to customize how the MVNX will be imported
+into a Blender armature.
 
-Alternatively, run this init file as a script from Blender.
+Position the mouse over the different options or read the corresponding
+docstrings to get more info about what do they do.
+
+To install this add-on, make sure Blender's Python is able to find it
+under ``addon_utils.paths()``, and that the Blender version matches to make
+it installable. Alternatively, run this init file as a script from Blender.
 """
 
 
@@ -33,7 +40,7 @@ VERSION = "0.1.0"  # automatically managed by bumpversion
 bl_info = {
     "name": "MVNX animation I/O addon",
     "author": "Andres FR",
-    # "version"  # this triggered problems with bumpversion. help is appreciated
+    # "version"  # triggered problems with bumpversion. help is appreciated
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "I/O functionality for MoCap data in MVNX format",
@@ -64,6 +71,7 @@ classes = [ImportMVNX, ImportFilesCollection]  # , ExportMVNX]
 register_cl, unregister_cl = bpy.utils.register_classes_factory(classes)
 kmm = KeymapManager()
 omm = OperatorToMenuManager()
+
 
 def register():
     """

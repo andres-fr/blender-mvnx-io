@@ -12,33 +12,19 @@ __author__ = "Andres FR"
 
 # from mathutils import Vector  # mathutils is a blender package
 import bpy
-from bpy.types import Operator
 #
-from bpy.props import EnumProperty, StringProperty, CollectionProperty
-from bpy.props import BoolProperty, FloatProperty, IntProperty
+from bpy.props import EnumProperty, StringProperty  # , CollectionProperty
+from bpy.props import BoolProperty, FloatProperty  # , IntProperty
 from bpy_extras.io_utils import ImportHelper  # , ExportHelper
-from bpy_extras.io_utils import orientation_helper, axis_conversion
 #
 from .mvnx_import import load_mvnx_into_blender
-
-from bpy.props import CollectionProperty
-from .utils import ImportFilesCollection, resolve_path
-files: CollectionProperty(type=ImportFilesCollection)
+from .utils import resolve_path  # , ImportFilesCollection
 
 
 # #############################################################################
 # ## IMPORT OPERATOR
 # #############################################################################
 
-
-# scn = bpy.context.scene
-# scn.frame_start = 50
-# scn.frame_end = 200
-
-
-
-# this decorator adds the axis entries as properties to the class.
-# @orientation_helper(axis_forward="-Z", axis_up="Y")
 class ImportMVNX(bpy.types.Operator, ImportHelper):
     """
     Load an MVNX motion capture file. This Operator is heavily inspired in the
@@ -51,9 +37,6 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
 
     # filename_ext = ".mvnx"
     filter_glob: StringProperty(default="*.mvnx", options={'HIDDEN'})
-
-
-    # files: CollectionProperty(type=ImportFilesCollection)
 
     mvnx_schema_path: StringProperty(
         subtype="FILE_PATH",
@@ -104,64 +87,6 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
                      "beginning (but after identity if given)"),
         default=True,
     )
-
-
-    # frame_start: IntProperty(
-    #     name="Start Frame",
-    #     description="Starting frame for the animation",
-    #     default=1,
-    # )
-    # use_fps_scale: BoolProperty(
-    #     name="Scale FPS",
-    #     description=(
-    #         "Scale the framerate from the BVH to the current scenes, "
-    #         "otherwise each BVH frame maps directly to a Blender frame"
-    #     ),
-    #     default=False,
-    # )
-    # update_scene_fps: BoolProperty(
-    #     name="Update Scene FPS",
-    #     description=(
-    #         "Set the scene framerate to that of the BVH file (note that this "
-    #         "nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-    #     ),
-    #     default=False,
-    # )
-    # update_scene_duration: BoolProperty(
-    #     name="Update Scene Duration",
-    #     description="Extend the scene's duration to the BVH duration (never shortens the scene)",
-    #     default=False,
-    # )
-    # use_cyclic: BoolProperty(
-    #     name="Loop",
-    #     description="Loop the animation playback",
-    #     default=False,
-    # )
-    # rotate_mode: EnumProperty(
-    #     name="Rotation",
-    #     description="Rotation conversion",
-    #     items=(
-    #         ('QUATERNION', "Quaternion",
-    #          "Convert rotations to quaternions"),
-    #         ('NATIVE', "Euler (Native)",
-    #          "Use the rotation order defined in the BVH file"),
-    #         ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
-    #         ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
-    #         ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
-    #         ('YZX', "Euler (YZX)", "Convert rotations to euler YZX"),
-    #         ('ZXY', "Euler (ZXY)", "Convert rotations to euler ZXY"),
-    #         ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX"),
-    #     ),
-    #     default='NATIVE',
-    # )
-
-
-
-    # def execute(self, context):
-    #     print(len(self.files))
-    #     for i, f in enumerate(self.files, 1):
-    #         print("File %i: %s" % (i, f.name))
-    #     return {'FINISHED'}
 
     def execute(self, context):
         """

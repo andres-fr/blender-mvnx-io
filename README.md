@@ -1,7 +1,16 @@
 # `io_anim_mvnx`
 
 
-This repository hosts an addon for I/O of MVNX MoCap data in Blender 2.80, as well as CI facilities to test, document and package it.
+This repository hosts an addon for Input of MVNX MoCap data in Blender 2.80, as well as facilities to test, autodocument and package it.
+
+## Installation:
+
+As any other addon, simply add the `io_anim_mvnx` folder to any of Blender's `addon` locations, and activate it to get started.
+
+
+----------------------------
+
+# Info for developers:
 
 
 ### run all tests with coverage:
@@ -60,7 +69,6 @@ xx
 ```
 
 
+### Travis CI:
 
-## Setup:
-
-
+TODO (Have travis install Blender2.80 etc).

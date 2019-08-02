@@ -88,6 +88,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">io_anim_mvnx package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.mvnx">io_anim_mvnx.mvnx module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.mvnx_import">io_anim_mvnx.mvnx_import module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.operators">io_anim_mvnx.operators module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx.utils">io_anim_mvnx.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-io_anim_mvnx">Module contents</a></li>
 </ul>
@@ -326,6 +328,21 @@ formatted into tabular form.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="io_anim_mvnx.mvnx.Mvnx.extract_joints">
+<code class="sig-name descname">extract_joints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.extract_joints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.extract_joints" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tuple (X, Y). The element X is a list of the joint names
+ordered as they appear in the MVNX file.
+The element Y is a list in the original MVNX ordering, in the form
+[((seg_ori, point_ori), (seg_dest, point_dest)), …], where each
+element contains 4 strings summarizing the origin-&gt;destiny of a
+connection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="io_anim_mvnx.mvnx.Mvnx.extract_segments">
 <code class="sig-name descname">extract_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx.html#Mvnx.extract_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx.Mvnx.extract_segments" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -334,6 +351,132 @@ formatted into tabular form.</p>
 ordered by id (starting at 1 and incrementing +1).</p>
 </dd>
 </dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-io_anim_mvnx.mvnx_import">
+<span id="io-anim-mvnx-mvnx-import-module"></span><h2>io_anim_mvnx.mvnx_import module<a class="headerlink" href="#module-io_anim_mvnx.mvnx_import" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the required functionality to import an MVNX file as a
+moving set of bones into Blender.</p>
+<p>It allows for different options regarding their connectivity, scale…</p>
+<dl class="function">
+<dt id="io_anim_mvnx.mvnx_import.global_to_inherited_quats">
+<code class="sig-prename descclassname">io_anim_mvnx.mvnx_import.</code><code class="sig-name descname">global_to_inherited_quats</code><span class="sig-paren">(</span><em class="sig-param">quaternions</em>, <em class="sig-param">joints</em>, <em class="sig-param">name_to_idx_map</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx_import.html#global_to_inherited_quats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx_import.global_to_inherited_quats" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>quaternions</strong> (<em>list</em>) – [q1, q2, …]</p></li>
+<li><p><strong>joints</strong> – A list of segment connections in the form
+[(parent_name, child_name), …]</p></li>
+<li><p><strong>name_to_idx_map</strong> (<em>dict</em>) – A dict in the form {seg_name: idx, …} where
+The quaternion for the segment seg_name can be found in quaternions[idx].</p></li>
+</ul>
+</dd>
+</dl>
+<p>Given the list of MVNX quaternions and their tree relations,
+return a list with same shape, but each quaternion is expressed relative
+to its parent. For that, it suffices the following calculation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">q_child_relative</span> <span class="o">=</span> <span class="n">q_parent_glob</span><span class="o">.</span><span class="n">conjugated</span><span class="p">()</span> <span class="o">*</span> <span class="n">q_child_glob</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function assumes that the joints are given topologically sorted,
+i.e. that all parents prior to the current connection have been already
+visited when iterating the joint list from left to right (starting with
+the roots, and going down the leafs in order).</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.mvnx_import.load_mvnx_into_blender">
+<code class="sig-prename descclassname">io_anim_mvnx.mvnx_import.</code><code class="sig-name descname">load_mvnx_into_blender</code><span class="sig-paren">(</span><em class="sig-param">context</em>, <em class="sig-param">filepath</em>, <em class="sig-param">mvnx_schema_path=None</em>, <em class="sig-param">connectivity='CONNECTED'</em>, <em class="sig-param">scale=1.0</em>, <em class="sig-param">report=&lt;built-in function print&gt;</em>, <em class="sig-param">frame_start=0.0</em>, <em class="sig-param">inherit_rotations=True</em>, <em class="sig-param">add_identity_pose=True</em>, <em class="sig-param">add_t_pose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx_import.html#load_mvnx_into_blender"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx_import.load_mvnx_into_blender" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="io_anim_mvnx.mvnx_import.set_bone_head_and_tail">
+<code class="sig-prename descclassname">io_anim_mvnx.mvnx_import.</code><code class="sig-name descname">set_bone_head_and_tail</code><span class="sig-paren">(</span><em class="sig-param">bone, segment_points, joints, root_points=['pHipOrigin'], leaf_points=['pTopOfHead', 'pRightTopOfHand', 'pLeftTopOfHand', 'pRightToe', 'pLeftToe'], scale=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/mvnx_import.html#set_bone_head_and_tail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.mvnx_import.set_bone_head_and_tail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bone</strong> – an EditBone</p></li>
+<li><p><strong>segment_points</strong> – A dict of dicts that allows to find an offset given
+a joint connector. Expected: {seg_name: {p_name: 3d_vector, …}, …}.</p></li>
+<li><p><strong>joints</strong> – A list in the original MVNX ordering, in the form
+[((seg_ori, point_ori), (seg_dest, point_dest)), …], where each element
+contains 4 strings summarizing the origin-&gt;destiny of a connection.</p></li>
+<li><p><strong>root_points</strong> (<em>list</em>) – If a given bone/segment is root (has no parent),
+the first match in this list will be taken as bone.head.</p></li>
+<li><p><strong>leaf_points</strong> (<em>list</em>) – If a given bone/segment is a leaf (has no
+children), the first match in this list will be taken as bone.tail.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – A positive float by which head and tail vectors will
+be multiplied.</p></li>
+</ul>
+</dd>
+</dl>
+<p>For a given bone, this function reads the information of its parent and,
+given some MVNX data and assumptions, calculates its head and tail
+positions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<dl class="simple">
+<dt>This function assumes the following:</dt><dd><ol class="arabic simple">
+<li><p>If the bone has a parent, it can be found under bone.parent.</p></li>
+<li><p>The head and tail of the parent have been already properly set.</p></li>
+<li><p>If this bone is a root, its segment will have a point with
+a label in root_points.</p></li>
+<li><p>If this bone is a leaf, its segment will have a point with
+a label in leaf_points.</p></li>
+<li><p>For a given bone, there aren’t any possible collisions between the
+different root or head_points, i.e., the first match in the list
+will always be a good match (this happens e.g. if each leaf has
+a uniquely named leaf_point, which is usually the case).</p></li>
+</ol>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-io_anim_mvnx.operators">
+<span id="io-anim-mvnx-operators-module"></span><h2>io_anim_mvnx.operators module<a class="headerlink" href="#module-io_anim_mvnx.operators" title="Permalink to this headline">¶</a></h2>
+<p>This module contains subclasses from <code class="docutils literal notranslate"><span class="pre">bpy.types.Operator</span></code> defining
+user-callable functors. Operators can also be embedded in Panels and
+other UI elements.</p>
+<dl class="class">
+<dt id="io_anim_mvnx.operators.ImportMVNX">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.operators.</code><code class="sig-name descname">ImportMVNX</code><a class="reference internal" href="_modules/io_anim_mvnx/operators.html#ImportMVNX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bpy_types.Operator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bpy_extras.io_utils.ImportHelper</span></code></p>
+<p>Load an MVNX motion capture file. This Operator is heavily inspired in the
+oficially supported ImportBVH.</p>
+<dl class="attribute">
+<dt id="io_anim_mvnx.operators.ImportMVNX.bl_idname">
+<code class="sig-name descname">bl_idname</code><em class="property"> = 'import_anim.mvnx'</em><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX.bl_idname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="io_anim_mvnx.operators.ImportMVNX.bl_label">
+<code class="sig-name descname">bl_label</code><em class="property"> = 'Import MVNX'</em><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX.bl_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="io_anim_mvnx.operators.ImportMVNX.bl_options">
+<code class="sig-name descname">bl_options</code><em class="property"> = {'REGISTER', 'UNDO'}</em><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX.bl_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="io_anim_mvnx.operators.ImportMVNX.bl_rna">
+<code class="sig-name descname">bl_rna</code><em class="property"> = &lt;bpy_struct, Struct(&quot;IMPORT_ANIM_OT_mvnx&quot;)&gt;</em><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX.bl_rna" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="io_anim_mvnx.operators.ImportMVNX.execute">
+<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/operators.html#ImportMVNX.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.operators.ImportMVNX.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes the properties captured by the UI to the load_mvnx_into_blender
+function.
+:returns: <code class="docutils literal notranslate"><span class="pre">{&quot;FINISHED&quot;}</span></code> if everything went OK.</p>
 </dd></dl>
 
 </dd></dl>
@@ -397,6 +540,23 @@ encountering an error. Blender will react to that shutting down,
 making it look like a crash. Make sure the arguments are correct!</p>
 </div>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="io_anim_mvnx.utils.ImportFilesCollection">
+<em class="property">class </em><code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">ImportFilesCollection</code><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#ImportFilesCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.ImportFilesCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bpy_types.PropertyGroup</span></code></p>
+<p>This property group allows to load multiple files from the UI file browser
+menu, by selecting them with shift pressed.
+Source and usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://www.blender.org/forum/viewtopic.php?t=26470
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="io_anim_mvnx.utils.ImportFilesCollection.bl_rna">
+<code class="sig-name descname">bl_rna</code><em class="property"> = &lt;bpy_struct, Struct(&quot;ImportFilesCollection&quot;)&gt;</em><a class="headerlink" href="#io_anim_mvnx.utils.ImportFilesCollection.bl_rna" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -507,6 +667,16 @@ then empties the collection.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="io_anim_mvnx.utils.is_number">
+<code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">is_number</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#is_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.is_number" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True iff s is a number.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="io_anim_mvnx.utils.make_timestamp">
 <code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">make_timestamp</code><span class="sig-paren">(</span><em class="sig-param">timezone='Europe/Berlin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#make_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.make_timestamp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output example: day, month, year, hour, min, sec, milisecs:
@@ -549,14 +719,27 @@ gradians) and rotation order.</p>
 </dl>
 </dd></dl>
 
+<dl class="function">
+<dt id="io_anim_mvnx.utils.str_to_vec">
+<code class="sig-prename descclassname">io_anim_mvnx.utils.</code><code class="sig-name descname">str_to_vec</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx/utils.html#str_to_vec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.utils.str_to_vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a string like ‘1.23, 2.34 …’ into a list
+like [1.23, 2.34, …]</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-io_anim_mvnx">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-io_anim_mvnx" title="Permalink to this headline">¶</a></h2>
-<p>Init file for the add-on.</p>
-<p>To install it, make sure Blender’s Python is able to find it under
-addon_utils.paths(), and that the Blender version matches to make it
-installable.</p>
-<p>Alternatively, run this init file as a script from Blender.</p>
+<p>This add-on allows you to import motion capture data in MVNX format
+into Blender.</p>
+<p>After activating it, it features an operator that can be found in
+<code class="docutils literal notranslate"><span class="pre">[File</span> <span class="pre">&gt;</span> <span class="pre">Import/Export]</span></code>. Clicking on it will open a file navigator
+with a set of options to customize how the MVNX will be imported
+into a Blender armature.</p>
+<p>Position the mouse over the different options or read the corresponding
+docstrings to get more info about what do they do.</p>
+<p>To install this add-on, make sure Blender’s Python is able to find it
+under <code class="docutils literal notranslate"><span class="pre">addon_utils.paths()</span></code>, and that the Blender version matches to make
+it installable. Alternatively, run this init file as a script from Blender.</p>
 <dl class="function">
 <dt id="io_anim_mvnx.register">
 <code class="sig-prename descclassname">io_anim_mvnx.</code><code class="sig-name descname">register</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_anim_mvnx.html#register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#io_anim_mvnx.register" title="Permalink to this definition">¶</a></dt>

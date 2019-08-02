@@ -3,23 +3,39 @@
 \indexentry{export() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{export()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}|hyperpage}{3}
 \indexentry{extract\_frame\_info() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{extract\_frame\_info()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}|hyperpage}{3}
 \indexentry{extract\_frames() (io\_anim\_mvnx.mvnx.Mvnx static method)@\spxentry{extract\_frames()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx static method}|hyperpage}{3}
+\indexentry{extract\_joints() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{extract\_joints()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}|hyperpage}{3}
 \indexentry{extract\_segments() (io\_anim\_mvnx.mvnx.Mvnx method)@\spxentry{extract\_segments()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}|hyperpage}{3}
-\indexentry{io\_anim\_mvnx.utils (module)@\spxentry{io\_anim\_mvnx.utils}\spxextra{module}|hyperpage}{3}
-\indexentry{ArgumentParserForBlender (class in io\_anim\_mvnx.utils)@\spxentry{ArgumentParserForBlender}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{3}
-\indexentry{get\_argv\_after\_doubledash() (io\_anim\_mvnx.utils.ArgumentParserForBlender method)@\spxentry{get\_argv\_after\_doubledash()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}|hyperpage}{3}
-\indexentry{parse\_args() (io\_anim\_mvnx.utils.ArgumentParserForBlender method)@\spxentry{parse\_args()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}|hyperpage}{4}
-\indexentry{KeymapManager (class in io\_anim\_mvnx.utils)@\spxentry{KeymapManager}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{4}
-\indexentry{KEYMAP\_NAME (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_NAME}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{4}
-\indexentry{KEYMAP\_REGION\_TYPE (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_REGION\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{4}
-\indexentry{KEYMAP\_SPACE\_TYPE (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_SPACE\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{4}
-\indexentry{register() (io\_anim\_mvnx.utils.KeymapManager method)@\spxentry{register()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}|hyperpage}{4}
-\indexentry{unregister() (io\_anim\_mvnx.utils.KeymapManager method)@\spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}|hyperpage}{5}
-\indexentry{OperatorToMenuManager (class in io\_anim\_mvnx.utils)@\spxentry{OperatorToMenuManager}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{5}
-\indexentry{register() (io\_anim\_mvnx.utils.OperatorToMenuManager method)@\spxentry{register()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}|hyperpage}{5}
-\indexentry{unregister() (io\_anim\_mvnx.utils.OperatorToMenuManager method)@\spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}|hyperpage}{5}
-\indexentry{make\_timestamp() (in module io\_anim\_mvnx.utils)@\spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{5}
-\indexentry{resolve\_path() (in module io\_anim\_mvnx.utils)@\spxentry{resolve\_path()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{5}
-\indexentry{rot\_euler\_degrees() (in module io\_anim\_mvnx.utils)@\spxentry{rot\_euler\_degrees()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{5}
-\indexentry{io\_anim\_mvnx (module)@\spxentry{io\_anim\_mvnx}\spxextra{module}|hyperpage}{5}
-\indexentry{register() (in module io\_anim\_mvnx)@\spxentry{register()}\spxextra{in module io\_anim\_mvnx}|hyperpage}{6}
-\indexentry{unregister() (in module io\_anim\_mvnx)@\spxentry{unregister()}\spxextra{in module io\_anim\_mvnx}|hyperpage}{6}
+\indexentry{io\_anim\_mvnx.mvnx\_import (module)@\spxentry{io\_anim\_mvnx.mvnx\_import}\spxextra{module}|hyperpage}{3}
+\indexentry{global\_to\_inherited\_quats() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{global\_to\_inherited\_quats()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}|hyperpage}{3}
+\indexentry{load\_mvnx\_into\_blender() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{load\_mvnx\_into\_blender()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}|hyperpage}{4}
+\indexentry{set\_bone\_head\_and\_tail() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{set\_bone\_head\_and\_tail()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}|hyperpage}{4}
+\indexentry{io\_anim\_mvnx.operators (module)@\spxentry{io\_anim\_mvnx.operators}\spxextra{module}|hyperpage}{5}
+\indexentry{ImportMVNX (class in io\_anim\_mvnx.operators)@\spxentry{ImportMVNX}\spxextra{class in io\_anim\_mvnx.operators}|hyperpage}{5}
+\indexentry{bl\_idname (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_idname}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}|hyperpage}{5}
+\indexentry{bl\_label (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_label}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}|hyperpage}{5}
+\indexentry{bl\_options (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_options}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}|hyperpage}{5}
+\indexentry{bl\_rna (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}|hyperpage}{5}
+\indexentry{execute() (io\_anim\_mvnx.operators.ImportMVNX method)@\spxentry{execute()}\spxextra{io\_anim\_mvnx.operators.ImportMVNX method}|hyperpage}{5}
+\indexentry{io\_anim\_mvnx.utils (module)@\spxentry{io\_anim\_mvnx.utils}\spxextra{module}|hyperpage}{5}
+\indexentry{ArgumentParserForBlender (class in io\_anim\_mvnx.utils)@\spxentry{ArgumentParserForBlender}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{5}
+\indexentry{get\_argv\_after\_doubledash() (io\_anim\_mvnx.utils.ArgumentParserForBlender method)@\spxentry{get\_argv\_after\_doubledash()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}|hyperpage}{5}
+\indexentry{parse\_args() (io\_anim\_mvnx.utils.ArgumentParserForBlender method)@\spxentry{parse\_args()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}|hyperpage}{6}
+\indexentry{ImportFilesCollection (class in io\_anim\_mvnx.utils)@\spxentry{ImportFilesCollection}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{6}
+\indexentry{bl\_rna (io\_anim\_mvnx.utils.ImportFilesCollection attribute)@\spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.utils.ImportFilesCollection attribute}|hyperpage}{6}
+\indexentry{KeymapManager (class in io\_anim\_mvnx.utils)@\spxentry{KeymapManager}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{6}
+\indexentry{KEYMAP\_NAME (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_NAME}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{6}
+\indexentry{KEYMAP\_REGION\_TYPE (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_REGION\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{6}
+\indexentry{KEYMAP\_SPACE\_TYPE (io\_anim\_mvnx.utils.KeymapManager attribute)@\spxentry{KEYMAP\_SPACE\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}|hyperpage}{6}
+\indexentry{register() (io\_anim\_mvnx.utils.KeymapManager method)@\spxentry{register()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}|hyperpage}{6}
+\indexentry{unregister() (io\_anim\_mvnx.utils.KeymapManager method)@\spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}|hyperpage}{7}
+\indexentry{OperatorToMenuManager (class in io\_anim\_mvnx.utils)@\spxentry{OperatorToMenuManager}\spxextra{class in io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{register() (io\_anim\_mvnx.utils.OperatorToMenuManager method)@\spxentry{register()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}|hyperpage}{7}
+\indexentry{unregister() (io\_anim\_mvnx.utils.OperatorToMenuManager method)@\spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}|hyperpage}{7}
+\indexentry{is\_number() (in module io\_anim\_mvnx.utils)@\spxentry{is\_number()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{make\_timestamp() (in module io\_anim\_mvnx.utils)@\spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{resolve\_path() (in module io\_anim\_mvnx.utils)@\spxentry{resolve\_path()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{rot\_euler\_degrees() (in module io\_anim\_mvnx.utils)@\spxentry{rot\_euler\_degrees()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{str\_to\_vec() (in module io\_anim\_mvnx.utils)@\spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.utils}|hyperpage}{7}
+\indexentry{io\_anim\_mvnx (module)@\spxentry{io\_anim\_mvnx}\spxextra{module}|hyperpage}{8}
+\indexentry{register() (in module io\_anim\_mvnx)@\spxentry{register()}\spxextra{in module io\_anim\_mvnx}|hyperpage}{8}
+\indexentry{unregister() (in module io\_anim\_mvnx)@\spxentry{unregister()}\spxextra{in module io\_anim\_mvnx}|hyperpage}{8}

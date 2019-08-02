@@ -169,7 +169,8 @@
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">radians</span>  <span class="c1"># degrees</span>
 <span class="c1"># mathutils is a blender package</span>
 <span class="kn">from</span> <span class="nn">mathutils</span> <span class="k">import</span> <span class="n">Euler</span>  <span class="c1"># , Vector</span>
-<span class="c1"># import bpy</span>
+<span class="kn">from</span> <span class="nn">bpy.types</span> <span class="k">import</span> <span class="n">PropertyGroup</span>
+<span class="kn">from</span> <span class="nn">bpy.props</span> <span class="k">import</span> <span class="n">StringProperty</span>
 <span class="c1">#</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">__path__</span> <span class="k">as</span> <span class="n">PACKAGE_ROOT_PATH</span>
 
@@ -374,6 +375,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
 
 
+<div class="viewcode-block" id="ImportFilesCollection"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.ImportFilesCollection">[docs]</a><span class="k">class</span> <span class="nc">ImportFilesCollection</span><span class="p">(</span><span class="n">PropertyGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This property group allows to load multiple files from the UI file browser</span>
+<span class="sd">    menu, by selecting them with shift pressed.</span>
+<span class="sd">    Source and usage example::</span>
+
+<span class="sd">      https://www.blender.org/forum/viewtopic.php?t=26470</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">StringProperty</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;File Path&quot;</span><span class="p">,</span>
+                         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Filepath used for importing the file&quot;</span><span class="p">,</span>
+                         <span class="n">maxlen</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                         <span class="n">subtype</span><span class="o">=</span><span class="s1">&#39;FILE_PATH&#39;</span><span class="p">)</span></div>
+
+
 <span class="c1"># #############################################################################</span>
 <span class="c1"># ## MATH</span>
 <span class="c1"># #############################################################################</span>
@@ -385,6 +400,25 @@
 <span class="sd">      gradians) and rotation order.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Euler</span><span class="p">((</span><span class="n">radians</span><span class="p">(</span><span class="n">rot_x</span><span class="p">),</span> <span class="n">radians</span><span class="p">(</span><span class="n">rot_y</span><span class="p">),</span> <span class="n">radians</span><span class="p">(</span><span class="n">rot_z</span><span class="p">)),</span> <span class="n">order</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="str_to_vec"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.str_to_vec">[docs]</a><span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a string like &#39;1.23, 2.34 ...&#39; into a list</span>
+<span class="sd">    like [1.23, 2.34, ...]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="is_number"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.utils.is_number">[docs]</a><span class="k">def</span> <span class="nf">is_number</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :returns: True iff s is a number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 </pre></div>
 
            </div>

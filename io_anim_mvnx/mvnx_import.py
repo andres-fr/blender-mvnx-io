@@ -6,7 +6,6 @@ This module contains the required functionality to import an MVNX file as a
 moving set of bones into Blender.
 
 It allows for different options regarding their connectivity, scale...
-
 """
 
 
@@ -23,11 +22,6 @@ from .utils import str_to_vec
 
 
 # #############################################################################
-# ## GLOBALS
-# #############################################################################
-
-
-# #############################################################################
 # ## HELPERS
 # #############################################################################
 
@@ -39,8 +33,8 @@ def set_bone_head_and_tail(bone, segment_points, joints,
                            scale=1.0):
     """
     :param bone: an EditBone
-    :param segment_points: A dict of dicts that allows to find an offset given a
-      joint connector. Expected form: {seg_name: {p_name: 3d_vector, ...}, ...}.
+    :param segment_points: A dict of dicts that allows to find an offset given
+      a joint connector. Expected: {seg_name: {p_name: 3d_vector, ...}, ...}.
     :param joints: A list in the original MVNX ordering, in the form
       [((seg_ori, point_ori), (seg_dest, point_dest)), ...], where each element
       contains 4 strings summarizing the origin->destiny of a connection.
@@ -50,41 +44,43 @@ def set_bone_head_and_tail(bone, segment_points, joints,
       children), the first match in this list will be taken as bone.tail.
     :param float scale: A positive float by which head and tail vectors will
       be multiplied.
+
     For a given bone, this function reads the information of its parent and,
     given some MVNX data and assumptions, calculates its head and tail
     positions.
 
     .. warning::
       This function assumes the following:
-      1. If the bone has a parent, it can be found under bone.parent.
-      2. The head and tail of the parent have been already properly set.
-      3. If this bone is a root, its segment will have a point with
-         a label in root_points.
-      4. If this bone is a leaf, its segment will have a point with
-         a label in leaf_points.
-      5. For a given bone, there aren't any possible collisions between the
-         different root or head_points, i.e., the first match in the list
-         will always be a good match (this happens e.g. if each leaf has
-         a uniquely named leaf_point, which is usually the case).
+        1. If the bone has a parent, it can be found under bone.parent.
+        2. The head and tail of the parent have been already properly set.
+        3. If this bone is a root, its segment will have a point with
+           a label in root_points.
+        4. If this bone is a leaf, its segment will have a point with
+           a label in leaf_points.
+        5. For a given bone, there aren't any possible collisions between the
+           different root or head_points, i.e., the first match in the list
+           will always be a good match (this happens e.g. if each leaf has
+           a uniquely named leaf_point, which is usually the case).
     """
     b_name = bone.name
     # find head:
     if bone.parent is None:
         # if root, we assume a point in root_points exists
         bone.head = next(v for k, v in segment_points[b_name].items()
-                         if k in root_points)
+                         if k in root_points).copy()
+        if scale != 1.0:
+            bone.head *= scale
     else:
         bp_name = bone.parent.name
-        print("parent segpoints:", segment_points[bp_name])
         # get first joint that contains both this bone and parent
         j = next(((c1, p1), (c2, p2)) for ((c1, p1), (c2, p2)) in joints
                  if c1 == bp_name and c2 == b_name)
-        head_offs = segment_points[bp_name][j[0][1]].copy()
-        head_offs += segment_points[b_name][j[1][1]]  # usually 000
+        # head_offs = offset from parent to this plus extra offset (usually 0)
+        head_offs = segment_points[bp_name][j[0][1]].copy()  # parent's offs
+        head_offs += segment_points[b_name][j[1][1]]  # extra offset
         if scale != 1.0:
             head_offs *= scale
         bone.head = bone.parent.head.copy() + head_offs
-        # print("                        >>>", bone.parent.head, bone.parent.tail, bone.head)
         if bone.head == bone.parent.tail:
             bone.use_connect = True  # avoid connecting separated bones
     # find tail:
@@ -95,15 +91,16 @@ def set_bone_head_and_tail(bone, segment_points, joints,
     else:
         # get first joint that contains this bone as parent
         j = next(p1 for ((c1, p1), _) in joints if c1 == b_name)
-        tail_offs = segment_points[b_name][j].copy()
+        tail_offs = segment_points[b_name][j]
     if scale != 1.0:
         tail_offs *= scale
     bone.tail = bone.head.copy() + tail_offs
 
+
 def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
     """
     :param list quaternions: [q1, q2, ...]
-    :param joints: A list of segment connections in the form 
+    :param joints: A list of segment connections in the form
       [(parent_name, child_name), ...]
     :param dict name_to_idx_map: A dict in the form {seg_name: idx, ...} where
       The quaternion for the segment seg_name can be found in quaternions[idx].
@@ -111,6 +108,7 @@ def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
     Given the list of MVNX quaternions and their tree relations,
     return a list with same shape, but each quaternion is expressed relative
     to its parent. For that, it suffices the following calculation::
+
       q_child_relative = q_parent_glob.conjugated() * q_child_glob
 
     .. warning::
@@ -136,11 +134,6 @@ def load_mvnx_into_blender(
         mvnx_schema_path=None,
         connectivity='CONNECTED',  # 'INDIVIDUAL'
         scale=1.0,
-        # use_cyclic=False,
-        # global_matrix=None,
-        # use_fps_scale=False,
-        # update_scene_fps=False,
-        # update_scene_duration=False,
         report=print,
         frame_start=0.0,
         inherit_rotations=True,
@@ -176,6 +169,7 @@ def load_mvnx_into_blender(
     #
     num_segments = int(frames_metadata["segmentCount"])
     num_frames = len(all_frames)
+    report({'INFO'}, "Loading %s (%d frames)" % (mvnx_filename, num_frames))
     frame_rate = int(mvnx.mvnx.subject.attrib["frameRate"])
     #
     assert len(segments) == num_segments, "Inconsistent segmentCount?"
@@ -184,6 +178,7 @@ def load_mvnx_into_blender(
     bpy.ops.object.select_all(action='DESELECT')
     arm_data = bpy.data.armatures.new(mvnx_filename)
     arm_ob = bpy.data.objects.new(mvnx_filename, arm_data)
+    arm_name = arm_ob.name
     context.collection.objects.link(arm_ob)
     arm_ob.select_set(True)
     context.view_layer.objects.active = arm_ob
@@ -197,7 +192,7 @@ def load_mvnx_into_blender(
     # create forest of bones using joints info: note that at this point the
     # 'connectivity' variable is ignored, since the MVNX defines heads and
     # tails assuming connected segments.
-    for parent_n, child_n in joints_lite: # conn1, conn2 in joints:
+    for parent_n, child_n in joints_lite:  # conn1, conn2 in joints:
         # set parenthood
         edit_bones[seg2idx[child_n]].parent = edit_bones[seg2idx[parent_n]]
     # set heads and tails, as well as other edit bone properties:
@@ -211,7 +206,6 @@ def load_mvnx_into_blender(
         for b in edit_bones:
             b.parent = None
 
-
     # Animation part:
     # prepare animation: create action and assign it to the armature
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -219,7 +213,7 @@ def load_mvnx_into_blender(
     arm_ob.animation_data_create()
     action = bpy.data.actions.new(name=mvnx_filename)
     arm_ob.animation_data.action = action
-    pose_bones = [arm_ob.pose.bones[b.name] for b in edit_bones]
+    pose_bones = [arm_ob.pose.bones[s.attrib["label"]] for s in segments]
     pb_roots = {b for b in pose_bones if b.parent is None}
 
     # one we switched out of EDIT mode, bones with coordinates can be retrieved
@@ -227,18 +221,18 @@ def load_mvnx_into_blender(
         """
         Returns an EditBone by name in a way that matrix_local can be accessed.
         """
-        return bpy.data.objects[mvnx_filename].data.bones[eb_name]
+        return bpy.data.objects[arm_name].data.bones[eb_name]
 
     def get_pose_bone(pb_name):
         """
         Returns a PoseBone by name in a way that matrix_basis and rotation
         data can be accessed.
         """
-        return bpy.data.objects[mvnx_filename].pose.bones[pb_name]
+        return bpy.data.objects[arm_name].pose.bones[pb_name]
 
     # these matrices convert from the global coordinates to bone in rest pos.
     eb_matrices = {b.name: get_edit_bone(b.name).matrix_local.copy()
-                   for b in edit_bones}
+                   for b in pose_bones}
     # the inverses convert from rest bone coords to global (inverted_safe?)
     eb_matrices_inv = {k: v.inverted() for k, v in eb_matrices.items()}
 
@@ -255,7 +249,6 @@ def load_mvnx_into_blender(
         :returns: same vector expressed in terms of the bone basis. If the
           output is applied to the bone, it will appear in the global g_loc.
         """
-        eb = get_edit_bone(bone_name)
         bone_transl_mat = Matrix.Translation(g_loc)
         b_loc = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
         return b_loc
@@ -276,7 +269,6 @@ def load_mvnx_into_blender(
         """
         eb_quat = eb_matrices[bone_name].to_quaternion()
         return eb_quat.conjugated().cross(g_quat).cross(eb_quat)
-
 
     # create one FCurve per data channel and fill them with empty <num_frames>.
     # Note that if connectivity=="INDIVIDUAL", all bones are roots and have
@@ -302,14 +294,12 @@ def load_mvnx_into_blender(
             kf_points = fcurve.keyframe_points
             kf_points.add(num_frames)
 
-
     # at this point we have everything set up and can start filling up the
     # frames. Note that the global quaternion rotations given by the MVNX
     # have to be inherited only if connectivity=="CONNECTED" and
     # inherit_rotations is true.
     for frame_i, frame in enumerate(all_frames):
         frame_time = frame_i + frame_start
-        ## print("...loading frame", frame_i, "at position", frame_time)
         frame_pos = [Vector(frame["position"][i: i+3])
                      for i in range(0, 3 * num_segments, 3)]
         frame_ori = [Quaternion(frame["orientation"][i:i+4])
@@ -324,7 +314,7 @@ def load_mvnx_into_blender(
             loc_fcurves = fcurves[b_name]["loc"]
             if loc_fcurves:
                 # this happens always, independently of rotation inheritance
-                bone_loc = global_loc_to_bone(glob_loc * scale, b_name)      ###  * scale
+                bone_loc = global_loc_to_bone(glob_loc * scale, b_name)
                 for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
                     loc_fc.keyframe_points[frame_i].co.x = frame_time
                     loc_fc.keyframe_points[frame_i].co.y = loc_entry
@@ -349,7 +339,7 @@ def load_mvnx_into_blender(
         # if IMPORT_LOOP:
         #     pass  # 2.5 doenst have cyclic now?
         for ckfp in c.keyframe_points:
-            ckfp.interpolation = "CONSTANT" #  "LINEAR" "CUBIC" "BEZIER"
+            ckfp.interpolation = "CONSTANT"  # "LINEAR" "CUBIC" "BEZIER"
     # arm_ob.matrix_world = global_matrix
-    # bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+    # bpy.ops.object.transform_apply(location=False,rotation=True,scale=False)
     return arm_ob

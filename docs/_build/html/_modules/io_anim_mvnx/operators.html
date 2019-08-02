@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_anim_mvnx.operators &mdash; io_anim_mvnx 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> io_anim_mvnx
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../io_anim_mvnx.html">io_anim_mvnx package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">io_anim_mvnx</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../io_anim_mvnx.html">io_anim_mvnx</a> &raquo;</li>
+        
+      <li>io_anim_mvnx.operators</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for io_anim_mvnx.operators</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains subclasses from ``bpy.types.Operator`` defining</span>
+<span class="sd">user-callable functors. Operators can also be embedded in Panels and</span>
+<span class="sd">other UI elements.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
+
+<span class="c1"># from mathutils import Vector  # mathutils is a blender package</span>
+<span class="kn">import</span> <span class="nn">bpy</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">bpy.props</span> <span class="k">import</span> <span class="n">EnumProperty</span><span class="p">,</span> <span class="n">StringProperty</span>  <span class="c1"># , CollectionProperty</span>
+<span class="kn">from</span> <span class="nn">bpy.props</span> <span class="k">import</span> <span class="n">BoolProperty</span><span class="p">,</span> <span class="n">FloatProperty</span>  <span class="c1"># , IntProperty</span>
+<span class="kn">from</span> <span class="nn">bpy_extras.io_utils</span> <span class="k">import</span> <span class="n">ImportHelper</span>  <span class="c1"># , ExportHelper</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">.mvnx_import</span> <span class="k">import</span> <span class="n">load_mvnx_into_blender</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">resolve_path</span>  <span class="c1"># , ImportFilesCollection</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## IMPORT OPERATOR</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="ImportMVNX"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.operators.ImportMVNX">[docs]</a><span class="k">class</span> <span class="nc">ImportMVNX</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">Operator</span><span class="p">,</span> <span class="n">ImportHelper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load an MVNX motion capture file. This Operator is heavily inspired in the</span>
+<span class="sd">    oficially supported ImportBVH.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bl_idname</span> <span class="o">=</span> <span class="s2">&quot;import_anim.mvnx&quot;</span>
+    <span class="n">bl_label</span> <span class="o">=</span> <span class="s2">&quot;Import MVNX&quot;</span>
+    <span class="n">bl_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;REGISTER&#39;</span><span class="p">,</span> <span class="s1">&#39;UNDO&#39;</span><span class="p">}</span>
+
+    <span class="c1"># filename_ext = &quot;.mvnx&quot;</span>
+    <span class="n">filter_glob</span><span class="p">:</span> <span class="n">StringProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;*.mvnx&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;HIDDEN&#39;</span><span class="p">})</span>
+
+    <span class="n">mvnx_schema_path</span><span class="p">:</span> <span class="n">StringProperty</span><span class="p">(</span>
+        <span class="n">subtype</span><span class="o">=</span><span class="s2">&quot;FILE_PATH&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">resolve_path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;mvnx_schema_mpiea.xsd&quot;</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MVNX Schema path&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Validation schema for the MVNX file (optional)&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">connectivity</span><span class="p">:</span> <span class="n">EnumProperty</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;INDIVIDUAL&#39;</span><span class="p">,</span> <span class="s2">&quot;Individual&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+               <span class="p">(</span><span class="s1">&#39;CONNECTED&#39;</span><span class="p">,</span> <span class="s2">&quot;Connected&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Information to be imported, and structure to be generated.&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;CONNECTED: A tree of connected bones. Position is only&quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot; taken for roots. INDIVIDUAL: each bone is isolated &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;and becomes position and orientation separately.&quot;</span><span class="p">),</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;INDIVIDUAL&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">scale</span><span class="p">:</span> <span class="n">FloatProperty</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Scale&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiply every bone length by this value&quot;</span><span class="p">,</span>
+        <span class="nb">min</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1000000.0</span><span class="p">,</span>
+        <span class="n">soft_min</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">soft_max</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">frame_start</span><span class="p">:</span> <span class="n">FloatProperty</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Position of First Frame&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;First imported frame will be at this position&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">inherit_rotations</span><span class="p">:</span> <span class="n">BoolProperty</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Inherit Rotations&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If true, rotating a bone will rotate all its children&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">add_identity_pose</span><span class="p">:</span> <span class="n">BoolProperty</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Add Identity Pose&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Add a keyframe with zero rotations to the beginning&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">add_t_pose</span><span class="p">:</span> <span class="n">BoolProperty</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Add T-Pose&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Add a keyframe with the t-pose definition to the &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;beginning (but after identity if given)&quot;</span><span class="p">),</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="ImportMVNX.execute"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.operators.ImportMVNX.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Passes the properties captured by the UI to the load_mvnx_into_blender</span>
+<span class="sd">        function.</span>
+<span class="sd">        :returns: ``{&quot;FINISHED&quot;}`` if everything went OK.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># as_keywords returns a copy of the properties as a dict.</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_keywords</span><span class="p">(</span><span class="n">ignore</span><span class="o">=</span><span class="p">(</span>
+            <span class="c1"># &quot;axis_forward&quot;, &quot;axis_up&quot;,</span>
+            <span class="s2">&quot;filter_glob&quot;</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_schema_path</span><span class="p">:</span>
+            <span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;mvnx_schema_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># afwd = self.axis_forward</span>
+        <span class="c1"># aup = self.axis_up</span>
+        <span class="c1"># global_mat = axis_conversion(from_forward=afwd, from_up=aup).to_4x4()</span>
+        <span class="c1"># keywords[&quot;global_matrix&quot;] = global_mat</span>
+        <span class="n">load_mvnx_into_blender</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="o">**</span><span class="n">keywords</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">({</span><span class="s2">&quot;FINISHED&quot;</span><span class="p">})</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

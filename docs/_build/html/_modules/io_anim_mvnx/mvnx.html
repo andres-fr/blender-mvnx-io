@@ -266,7 +266,7 @@
 
 
 <span class="c1"># #############################################################################</span>
-<span class="c1"># ## MVN CLASS</span>
+<span class="c1"># ## MVNX CLASS</span>
 <span class="c1"># #############################################################################</span>
 
 <div class="viewcode-block" id="Mvnx"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx">[docs]</a><span class="k">class</span> <span class="nc">Mvnx</span><span class="p">:</span>
@@ -283,7 +283,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_path</span> <span class="o">=</span> <span class="n">mvnx_path</span>
         <span class="c1">#</span>
-        <span class="n">mvnx</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mvnx_path</span><span class="p">)</span>
+        <span class="n">mvnx</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mvnx_path</span><span class="p">,</span> <span class="n">etree</span><span class="o">.</span><span class="n">ETCompatXMLParser</span><span class="p">())</span>
         <span class="c1"># if a schema is given, load it and validate mvn</span>
         <span class="k">if</span> <span class="n">mvnx_schema_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XMLSchema</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">mvnx_schema_path</span><span class="p">)</span>
@@ -338,18 +338,18 @@
 <span class="sd">          frame outputs are relational collections of dictionaries that can be</span>
 <span class="sd">          formatted into tabular form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Converts a node with a text like &#39;1.23, 2.34 ...&#39; into a list</span>
-<span class="sd">            like [1.23, 2.34, ...]</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
-
         <span class="k">def</span> <span class="nf">frame_to_dict</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">is_normal</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            A frame node has a dict of ``attribs`` and a dict of ``items``.</span>
 <span class="sd">            This function merges both and returns a single python dict</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Converts a node with a text like &#39;1.23, 2.34 ...&#39; into a list</span>
+<span class="sd">                like [1.23, 2.34, ...]</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
+
             <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">str_to_vec</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
                  <span class="o">**</span><span class="n">frame</span><span class="o">.</span><span class="n">attrib</span><span class="p">}</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>  <span class="c1"># ms since start, i.e. ms_i - ms_0</span>
@@ -381,7 +381,25 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">]),</span>\
             <span class="s2">&quot;Segments aren&#39;t ordered by id?&quot;</span>
-        <span class="k">return</span> <span class="n">segments</span></div></div>
+        <span class="k">return</span> <span class="n">segments</span></div>
+
+<div class="viewcode-block" id="Mvnx.extract_joints"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_joints">[docs]</a>    <span class="k">def</span> <span class="nf">extract_joints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: A tuple (X, Y). The element X is a list of the joint names</span>
+<span class="sd">          ordered as they appear in the MVNX file.</span>
+<span class="sd">          The element Y is a list in the original MVNX ordering, in the form</span>
+<span class="sd">          [((seg_ori, point_ori), (seg_dest, point_dest)), ...], where each</span>
+<span class="sd">          element contains 4 strings summarizing the origin-&gt;destiny of a</span>
+<span class="sd">          connection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">names</span><span class="p">,</span> <span class="n">connectors</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span>
+            <span class="c1">#</span>
+            <span class="n">seg_ori</span><span class="p">,</span> <span class="n">point_ori</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">connector1</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">seg_dest</span><span class="p">,</span> <span class="n">point_dest</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">connector2</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">connectors</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">seg_ori</span><span class="p">,</span> <span class="n">point_ori</span><span class="p">),</span> <span class="p">(</span><span class="n">seg_dest</span><span class="p">,</span> <span class="n">point_dest</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">names</span><span class="p">,</span> <span class="n">connectors</span></div></div>
 </pre></div>
 
            </div>

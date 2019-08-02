@@ -2,8 +2,10 @@
 \contentsline {chapter}{\numberline {1}io\_anim\_mvnx package}{1}{chapter.1}
 \contentsline {section}{\numberline {1.1}Submodules}{1}{section.1.1}
 \contentsline {section}{\numberline {1.2}io\_anim\_mvnx.mvnx module}{1}{section.1.2}
-\contentsline {section}{\numberline {1.3}io\_anim\_mvnx.utils module}{3}{section.1.3}
-\contentsline {section}{\numberline {1.4}Module contents}{5}{section.1.4}
-\contentsline {chapter}{\numberline {2}Indices and tables}{7}{chapter.2}
-\contentsline {chapter}{Python Module Index}{8}{section*.25}
-\contentsline {chapter}{Index}{9}{section*.26}
+\contentsline {section}{\numberline {1.3}io\_anim\_mvnx.mvnx\_import module}{3}{section.1.3}
+\contentsline {section}{\numberline {1.4}io\_anim\_mvnx.operators module}{5}{section.1.4}
+\contentsline {section}{\numberline {1.5}io\_anim\_mvnx.utils module}{5}{section.1.5}
+\contentsline {section}{\numberline {1.6}Module contents}{8}{section.1.6}
+\contentsline {chapter}{\numberline {2}Indices and tables}{9}{chapter.2}
+\contentsline {chapter}{Python Module Index}{10}{section*.39}
+\contentsline {chapter}{Index}{11}{section*.40}
