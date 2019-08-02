@@ -131,7 +131,7 @@ class Mvnx:
         """
         self.mvnx_path = mvnx_path
         #
-        mvnx = etree.parse(mvnx_path)
+        mvnx = etree.parse(mvnx_path, etree.ETCompatXMLParser())
         # if a schema is given, load it and validate mvn
         if mvnx_schema_path is not None:
             self.schema = etree.XMLSchema(file=mvnx_schema_path)

@@ -15,7 +15,7 @@ import bpy
 from bpy.types import Operator
 #
 from bpy.props import EnumProperty, StringProperty, CollectionProperty
-from bpy.props import BoolProperty, FloatProperty  # , IntProperty
+from bpy.props import BoolProperty, FloatProperty, IntProperty
 from bpy_extras.io_utils import ImportHelper  # , ExportHelper
 from bpy_extras.io_utils import orientation_helper, axis_conversion
 #
@@ -31,6 +31,9 @@ files: CollectionProperty(type=ImportFilesCollection)
 # #############################################################################
 
 
+# scn = bpy.context.scene
+# scn.frame_start = 50
+# scn.frame_end = 200
 
 
 
@@ -56,12 +59,19 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         subtype="FILE_PATH",
         default=resolve_path("data", "mvnx_schema_mpiea.xsd"),
         name="MVNX Schema path",
-        description="Validation schema for the MVNX file (optional)")
-    inherit_rotations: BoolProperty(
-        name="Inherit Rotations",
-        description="If true, rotating a bone will rotate all its children",
-        default=True,
+        description="Validation schema for the MVNX file (optional)"
     )
+
+    connectivity: EnumProperty(
+        items=(('CONNECTED', "Connected", ""),
+               ('INDIVIDUAL', "Individual", "")),
+        name="Information to be imported, and structure to be generated.",
+        description=("CONNECTED: A tree of connected bones. Position is only" +
+                     " taken for roots. INDIVIDUAL: each bone is isolated " +
+                     "and becomes position and orientation separately."),
+        default='CONNECTED',
+    )
+
     scale: FloatProperty(
         name="Scale",
         description="Multiply every bone length by this value",
@@ -70,15 +80,32 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         default=1.0,
     )
 
-    # target: EnumProperty(
-    #     items=(
-    #         ('ARMATURE', "Armature", ""),
-    #         ('OBJECT', "Object", ""),
-    #     ),
-    #     name="Target",
-    #     description="Import target type",
-    #     default='ARMATURE',
-    # )
+    frame_start: FloatProperty(
+        name="Position of First Frame",
+        description="First imported frame will be at this position",
+        default=0.0,
+    )
+
+    inherit_rotations: BoolProperty(
+        name="Inherit Rotations",
+        description="If true, rotating a bone will rotate all its children",
+        default=True,
+    )
+
+    add_identity_pose: BoolProperty(
+        name="Add Identity Pose",
+        description="Add a keyframe with zero rotations to the beginning",
+        default=True,
+    )
+
+    add_t_pose: BoolProperty(
+        name="Add T-Pose",
+        description=("Add a keyframe with the t-pose definition to the " +
+                     "beginning (but after identity if given)"),
+        default=True,
+    )
+
+
     # frame_start: IntProperty(
     #     name="Start Frame",
     #     description="Starting frame for the animation",

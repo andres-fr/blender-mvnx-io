@@ -100,9 +100,9 @@ def set_bone_head_and_tail(bone, segment_points, joints,
     if scale != 1.0:
         tail_offs *= scale
     bone.tail = bone.head + tail_offs
-    
 
-def inherited_quats(quaternions, joints, name_to_idx_map):
+
+def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
     """
     :param list quaternions: [q1, q2, ...]
     :param joints: A list of segment connections in the form 
@@ -128,24 +128,25 @@ def inherited_quats(quaternions, joints, name_to_idx_map):
     return result
 
 # #############################################################################
-# ## IMPORTER
+# ## IMPORT ROUTINES
 # #############################################################################
 
 def load_mvnx_into_blender(
         context,
         filepath,
         mvnx_schema_path=None,
-        # target='ARMATURE',
-        # rotate_mode='NATIVE',
+        connectivity='CONNECTED',  # 'INDIVIDUAL'
         scale=1.0,
         # use_cyclic=False,
-        # frame_start=1,
         # global_matrix=None,
         # use_fps_scale=False,
         # update_scene_fps=False,
         # update_scene_duration=False,
-        inherit_rotations=False,
-        report=print):
+        report=print,
+        frame_start=0.0,
+        inherit_rotations=True,
+        add_identity_pose=True,
+        add_t_pose=True):
     """
     """
     # load MVNX object and basic metadata
@@ -153,6 +154,13 @@ def load_mvnx_into_blender(
     mvnx = Mvnx(filepath, mvnx_schema_path)
     #
     frames_metadata, config_frames, normal_frames = mvnx.extract_frame_info()
+    all_frames = normal_frames
+    if add_t_pose:
+        tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
+        all_frames.insert(0, tpose_frame)
+    if add_identity_pose:
+        id_frame = [f for f in config_frames if f["type"] == "identity"][0]
+        all_frames.insert(0, id_frame)
     #
     segments = sorted(mvnx.mvnx.subject.segments.iterchildren(),
                       key=lambda elt: int(elt.attrib["id"]))
@@ -165,10 +173,7 @@ def load_mvnx_into_blender(
     joints_lite = [(ori, dest) for ((ori, _), (dest, _)) in joints]
     #
     num_segments = int(frames_metadata["segmentCount"])
-    # num_sensors = frames_metadata["sensorCount"]
-    # num_joints = frames_metadata["jointCount"]
-    num_normal_frames = len (normal_frames)
-    num_frames = num_normal_frames + 2  # f[0]=ident, f[1]=tpose, f[2:]=normal
+    num_frames = len(all_frames)
     frame_rate = int(mvnx.mvnx.subject.attrib["frameRate"])
     #
     assert len(segments) == num_segments, "Inconsistent segmentCount?"
@@ -187,7 +192,9 @@ def load_mvnx_into_blender(
     edit_bones = [arm_data.edit_bones.new(s.attrib["label"])
                   for s in segments]
 
-    # create forest of bones using joints info:
+    # create forest of bones using joints info: note that at this point the
+    # 'connectivity' variable is ignored, since the MVNX defines heads and
+    # tails assuming connected segments.
     for parent_n, child_n in joints_lite: # conn1, conn2 in joints:
         # set parenthood
         edit_bones[seg2idx[child_n]].parent = edit_bones[seg2idx[parent_n]]
@@ -196,8 +203,14 @@ def load_mvnx_into_blender(
         set_bone_head_and_tail(b, segment_points, joints, scale=scale)
         b.use_inherit_rotation = inherit_rotations
 
-    # Animation part:
+    # Once heads and tails are set, and before EDIT mode is exited,
+    # remove parenthood if required by the connectivity
+    if connectivity == "INDIVIDUAL":
+        for b in edit_bones:
+            b.parent = None
 
+
+    # Animation part:
     # prepare animation: create action and assign it to the armature
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     context.view_layer.update()
@@ -217,7 +230,7 @@ def load_mvnx_into_blender(
     def get_pose_bone(pb_name):
         """
         Returns a PoseBone by name in a way that matrix_basis and rotation
-        datacan be accessed.
+        data can be accessed.
         """
         return bpy.data.objects[mvnx_filename].pose.bones[pb_name]
 
@@ -240,11 +253,23 @@ def load_mvnx_into_blender(
         :returns: same vector expressed in terms of the bone basis. If the
           output is applied to the bone, it will appear in the global g_loc.
         """
-        # this replicates the implementation in the BVH input plugin
+        # this replicates the implementation in the BVH input plugin, seems to
+        # work fine here
         eb = get_edit_bone(bone_name)
         bone_transl_mat = Matrix.Translation(g_loc - eb.head)
         b_loc = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
         return b_loc
+
+
+
+    def quack(g_loc, bone_name):
+        """
+        """
+        eb = get_edit_bone(bone_name)
+        bone_transl_mat = Matrix.Translation(g_loc) #  - eb.head)
+        b_loc = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
+        return b_loc
+
 
     def global_quat_to_bone(g_quat, bone_name):
         """
@@ -263,12 +288,10 @@ def load_mvnx_into_blender(
         eb_quat = eb_matrices[bone_name].to_quaternion()
         return eb_quat.conjugated().cross(g_quat).cross(eb_quat)
 
-    # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
-    context.scene.render.fps_base = 1.0
-    context.scene.render.fps = frame_rate
 
     # create one FCurve per data channel and fill them with empty <num_frames>
     fcurves = {pb.name: {"loc": [], "ori": []} for pb in pose_bones}
+
     for pb in pose_bones:
         has_location = pb in pb_roots
         #
@@ -278,7 +301,7 @@ def load_mvnx_into_blender(
                 fcurve = action.fcurves.new(data_path=loc_dp, index=dim_loc)
                 fcurves[pb.name]["loc"].append(fcurve)
                 kf_points = fcurve.keyframe_points
-                kf_points.add(num_frames)  # f[0]=ident, f[1]=tpose
+                kf_points.add(num_frames)
         # fill rotation fcurves
         pb.rotation_mode = "QUATERNION"
         rot_dp = 'pose.bones["%s"].rotation_quaternion' % pb.name
@@ -286,84 +309,83 @@ def load_mvnx_into_blender(
             fcurve = action.fcurves.new(data_path=rot_dp, index=dim_rot)
             fcurves[pb.name]["ori"].append(fcurve)
             kf_points = fcurve.keyframe_points
-            kf_points.add(num_frames)  # f[0]=ident, f[1]=tpose
+            kf_points.add(num_frames)
 
 
-    # fill the identity as frame[0] and tpose as frame[1]s
-    identity_frame = [f for f in config_frames if f["type"] == "identity"][0]
-    id_quats = [Quaternion(identity_frame["orientation"][i:i+4])
-                     for i in range(0, 4*num_segments, 4)]
-    #
-    tpose_frame = [f for f in config_frames if f["type"] == "tpose"][0]
-    tp_quats = [Quaternion(tpose_frame["orientation"][i:i+4])
-                     for i in range(0, 4*num_segments, 4)]
-    if inherit_rotations:
-        id_quats = inherited_quats(id_quats, joints_lite, seg2idx)
-        tp_quats = inherited_quats(tp_quats, joints_lite, seg2idx)
+    # at this point we have everything set up and can start filling up the
+    # frames. The only variable that makes a difference is connectivity:
+    # if INDIVIDUAL, bones have no parenthood and we have to take the position
+    # AND orientation.
 
-    for b_name, fc_dd in fcurves.items():
-        pb_idx = seg2idx[b_name]
-        pb_idx_3, pb_idx_4 = pb_idx * 3, pb_idx * 4
-        # set location, if existing:
-        if fc_dd["loc"]:
-            g_id_loc = Vector(identity_frame["position"][pb_idx_3: pb_idx_3+3])
-            b_id_loc = global_loc_to_bone(g_id_loc, b_name)
-            g_tp_loc = Vector(tpose_frame["position"][pb_idx_3: pb_idx_3+3])
-            b_tp_loc = global_loc_to_bone(g_tp_loc, b_name)
-            for loc_fc, loc_id, loc_tp in zip(fc_dd["loc"], b_id_loc, b_tp_loc):
-                loc_fc.keyframe_points[0].co.x = 0
-                loc_fc.keyframe_points[0].co.y = loc_id
-                loc_fc.keyframe_points[1].co.x = 1
-                loc_fc.keyframe_points[1].co.y = loc_tp
-        # set orientation
-        g_id_q = id_quats[pb_idx]
-        b_id_q = global_quat_to_bone(g_id_q, b_name)
-        #
-        g_tp_q = tp_quats[pb_idx]
-        b_tp_q = global_quat_to_bone(g_tp_q, b_name)
-        ### get_pose_bone(b_name).rotation_quaternion = b_tp_q
-        for ori_fc, ori_id, ori_tp in zip(fc_dd["ori"], b_id_q, b_tp_q):
-            ori_fc.keyframe_points[0].co.x = 0
-            ori_fc.keyframe_points[0].co.y = ori_id
-            ori_fc.keyframe_points[1].co.x = 1
-            ori_fc.keyframe_points[1].co.y = ori_tp
-
-
-    # fill frames (starting at 2 and incrementing by 1)
-    for frame_i, frame in enumerate(normal_frames, 2):
-        print("...filling frame", frame_i)
+    # fill frames
+    for frame_i, frame in enumerate(all_frames):
+        frame_xpos = frame_i + frame_start
+        # print("...filling frame", frame_i, "at position", frame_xpos)
         frame_pos = [frame["position"][i: i+3]
                      for i in range(0, 3 * num_segments, 3)]
         frame_ori = [Quaternion(frame["orientation"][i:i+4])
                      for i in range(0, 4*num_segments, 4)]
-        if inherit_rotations:
-            frame_ori = inherited_quats(frame_ori, joints_lite, seg2idx)
-        for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
-            b_name = pb.name
-            # fill location curves
-            loc_fcurves = fcurves[b_name]["loc"]
-            if loc_fcurves:
-                bone_loc = global_loc_to_bone(Vector(glob_loc), b_name)
-                for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
-                    # tpose_entry = loc_fc.keyframe_points[0].co.y
-                    loc_fc.keyframe_points[frame_i].co.x = frame_i
-                    loc_fc.keyframe_points[frame_i].co.y = loc_entry  # + tpose_entry
-            # fill orientation curves
-            ori_fcurves = fcurves[b_name]["ori"]
-            if ori_fcurves:
-                bone_ori = global_quat_to_bone(glob_ori, b_name)
-                # get_pose_bone(b_name).rotation_quaternion = bone_ori
-                for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
-                    ori_fc.keyframe_points[frame_i].co.x = frame_i
-                    ori_fc.keyframe_points[frame_i].co.y = ori_entry
 
+        if connectivity == "CONNECTED":
+
+            if inherit_rotations:
+                frame_ori = global_to_inherited_quats(frame_ori, joints_lite,
+                                                      seg2idx)
+            for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
+                b_name = pb.name
+                # fill location curves
+                loc_fcurves = fcurves[b_name]["loc"]
+                if loc_fcurves:
+                    bone_loc = global_loc_to_bone(Vector(glob_loc), b_name)
+                    for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
+                        loc_fc.keyframe_points[frame_i].co.x = frame_xpos
+                        loc_fc.keyframe_points[frame_i].co.y = loc_entry
+                # fill orientation curves
+                ori_fcurves = fcurves[b_name]["ori"]
+                if ori_fcurves:
+                    bone_ori = global_quat_to_bone(glob_ori, b_name)
+                    for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
+                        ori_fc.keyframe_points[frame_i].co.x = frame_xpos
+                        ori_fc.keyframe_points[frame_i].co.y = ori_entry
+
+        elif connectivity == "INDIVIDUAL":
+            for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
+                b_name = pb.name
+                # fill location curves
+                loc_fcurves = fcurves[b_name]["loc"]
+                if loc_fcurves:
+                    # bone_loc = Vector(glob_loc)
+                    # bone_loc = global_loc_to_bone(Vector(glob_loc), b_name)
+                    bone_loc = quack(Vector(glob_loc), b_name)
+                    for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
+                        loc_fc.keyframe_points[frame_i].co.x = frame_xpos
+                        loc_fc.keyframe_points[frame_i].co.y = loc_entry
+                # fill orientation curves
+                ori_fcurves = fcurves[b_name]["ori"]
+                if ori_fcurves:
+                    bone_ori = global_quat_to_bone(glob_ori, b_name)
+                    for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
+                        ori_fc.keyframe_points[frame_i].co.x = frame_xpos
+                        ori_fc.keyframe_points[frame_i].co.y = ori_entry
+
+        else:
+            raise Exception("Unknown connectivity? This should never happen")
+
+    # Done with animation importing. Final global configs:
+
+    # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
+    context.scene.render.fps_base = 1.0
+    context.scene.render.fps = frame_rate
 
     # finally config curves, apply matrix and return armature
     for c in action.fcurves:
         # if IMPORT_LOOP:
         #     pass  # 2.5 doenst have cyclic now?
         for ckfp in c.keyframe_points:
-            ckfp.interpolation = "CONSTANT" #  "LINEAR"
+            ckfp.interpolation = "CONSTANT" #  "LINEAR" "CUBIC" "BEZIER"
     # arm_ob.matrix_world = global_matrix
     # bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
     return arm_ob
+
+
+
