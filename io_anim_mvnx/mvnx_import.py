@@ -2,26 +2,25 @@
 # -*- coding: utf-8 -*-
 
 """
+This module contains the required functionality to import an MVNX file as a
+moving set of bones into Blender.
+
+It allows for different options regarding their connectivity, scale...
+
 """
 
 
 __author__ = "Andres FR"  # inspired in the official Blender BVH importer
 
+
 from os.path import basename
 #
 import bpy
-from mathutils import Vector, Quaternion, Matrix # , Euler
+from mathutils import Vector, Quaternion, Matrix
 #
 from .mvnx import Mvnx
-from .utils import str_to_vec, is_number
+from .utils import str_to_vec
 
-
-# #############################################################################
-# ## TODO
-# #############################################################################
-
-
-# 3. details like rescaling, more UI, TIME PRECISION...
 
 # #############################################################################
 # ## GLOBALS
@@ -68,7 +67,6 @@ def set_bone_head_and_tail(bone, segment_points, joints,
          will always be a good match (this happens e.g. if each leaf has
          a uniquely named leaf_point, which is usually the case).
     """
-    assert scale > 0, "Scale has to be positive!"
     b_name = bone.name
     # find head:
     if bone.parent is None:
@@ -77,15 +75,16 @@ def set_bone_head_and_tail(bone, segment_points, joints,
                          if k in root_points)
     else:
         bp_name = bone.parent.name
+        print("parent segpoints:", segment_points[bp_name])
         # get first joint that contains both this bone and parent
         j = next(((c1, p1), (c2, p2)) for ((c1, p1), (c2, p2)) in joints
                  if c1 == bp_name and c2 == b_name)
-        head_offs1 = segment_points[bp_name][j[0][1]]
-        head_offs2 = segment_points[b_name][j[1][1]]  # usually 000
+        head_offs = segment_points[bp_name][j[0][1]].copy()
+        head_offs += segment_points[b_name][j[1][1]]  # usually 000
         if scale != 1.0:
-            head_offs1 *= 1 # scale
-            head_offs2 *= 1 # scale
-        bone.head = bone.parent.head + head_offs1 + head_offs2
+            head_offs *= scale
+        bone.head = bone.parent.head.copy() + head_offs
+        # print("                        >>>", bone.parent.head, bone.parent.tail, bone.head)
         if bone.head == bone.parent.tail:
             bone.use_connect = True  # avoid connecting separated bones
     # find tail:
@@ -96,11 +95,10 @@ def set_bone_head_and_tail(bone, segment_points, joints,
     else:
         # get first joint that contains this bone as parent
         j = next(p1 for ((c1, p1), _) in joints if c1 == b_name)
-        tail_offs = segment_points[b_name][j]
+        tail_offs = segment_points[b_name][j].copy()
     if scale != 1.0:
         tail_offs *= scale
-    bone.tail = bone.head + tail_offs
-
+    bone.tail = bone.head.copy() + tail_offs
 
 def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
     """
@@ -127,6 +125,7 @@ def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
         result[name_to_idx_map[c_dest]].rotate(q_ori_inv)
     return result
 
+
 # #############################################################################
 # ## IMPORT ROUTINES
 # #############################################################################
@@ -149,6 +148,9 @@ def load_mvnx_into_blender(
         add_t_pose=True):
     """
     """
+    # sanity check
+    assert scale > 0, "Scale has to be positive!"
+
     # load MVNX object and basic metadata
     mvnx_filename = basename(filepath)
     mvnx = Mvnx(filepath, mvnx_schema_path)
@@ -253,23 +255,10 @@ def load_mvnx_into_blender(
         :returns: same vector expressed in terms of the bone basis. If the
           output is applied to the bone, it will appear in the global g_loc.
         """
-        # this replicates the implementation in the BVH input plugin, seems to
-        # work fine here
         eb = get_edit_bone(bone_name)
-        bone_transl_mat = Matrix.Translation(g_loc - eb.head)
+        bone_transl_mat = Matrix.Translation(g_loc)
         b_loc = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
         return b_loc
-
-
-
-    def quack(g_loc, bone_name):
-        """
-        """
-        eb = get_edit_bone(bone_name)
-        bone_transl_mat = Matrix.Translation(g_loc) #  - eb.head)
-        b_loc = (eb_matrices_inv[bone_name] @ bone_transl_mat).to_translation()
-        return b_loc
-
 
     def global_quat_to_bone(g_quat, bone_name):
         """
@@ -289,7 +278,9 @@ def load_mvnx_into_blender(
         return eb_quat.conjugated().cross(g_quat).cross(eb_quat)
 
 
-    # create one FCurve per data channel and fill them with empty <num_frames>
+    # create one FCurve per data channel and fill them with empty <num_frames>.
+    # Note that if connectivity=="INDIVIDUAL", all bones are roots and have
+    # a location channel
     fcurves = {pb.name: {"loc": [], "ori": []} for pb in pose_bones}
 
     for pb in pose_bones:
@@ -313,69 +304,45 @@ def load_mvnx_into_blender(
 
 
     # at this point we have everything set up and can start filling up the
-    # frames. The only variable that makes a difference is connectivity:
-    # if INDIVIDUAL, bones have no parenthood and we have to take the position
-    # AND orientation.
-
-    # fill frames
+    # frames. Note that the global quaternion rotations given by the MVNX
+    # have to be inherited only if connectivity=="CONNECTED" and
+    # inherit_rotations is true.
     for frame_i, frame in enumerate(all_frames):
-        frame_xpos = frame_i + frame_start
-        # print("...filling frame", frame_i, "at position", frame_xpos)
-        frame_pos = [frame["position"][i: i+3]
+        frame_time = frame_i + frame_start
+        ## print("...loading frame", frame_i, "at position", frame_time)
+        frame_pos = [Vector(frame["position"][i: i+3])
                      for i in range(0, 3 * num_segments, 3)]
         frame_ori = [Quaternion(frame["orientation"][i:i+4])
                      for i in range(0, 4*num_segments, 4)]
 
-        if connectivity == "CONNECTED":
-
-            if inherit_rotations:
-                frame_ori = global_to_inherited_quats(frame_ori, joints_lite,
-                                                      seg2idx)
-            for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
-                b_name = pb.name
-                # fill location curves
-                loc_fcurves = fcurves[b_name]["loc"]
-                if loc_fcurves:
-                    bone_loc = global_loc_to_bone(Vector(glob_loc), b_name)
-                    for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
-                        loc_fc.keyframe_points[frame_i].co.x = frame_xpos
-                        loc_fc.keyframe_points[frame_i].co.y = loc_entry
-                # fill orientation curves
-                ori_fcurves = fcurves[b_name]["ori"]
-                if ori_fcurves:
-                    bone_ori = global_quat_to_bone(glob_ori, b_name)
-                    for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
-                        ori_fc.keyframe_points[frame_i].co.x = frame_xpos
-                        ori_fc.keyframe_points[frame_i].co.y = ori_entry
-
-        elif connectivity == "INDIVIDUAL":
-            for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
-                b_name = pb.name
-                # fill location curves
-                loc_fcurves = fcurves[b_name]["loc"]
-                if loc_fcurves:
-                    # bone_loc = Vector(glob_loc)
-                    # bone_loc = global_loc_to_bone(Vector(glob_loc), b_name)
-                    bone_loc = quack(Vector(glob_loc), b_name)
-                    for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
-                        loc_fc.keyframe_points[frame_i].co.x = frame_xpos
-                        loc_fc.keyframe_points[frame_i].co.y = loc_entry
-                # fill orientation curves
-                ori_fcurves = fcurves[b_name]["ori"]
-                if ori_fcurves:
-                    bone_ori = global_quat_to_bone(glob_ori, b_name)
-                    for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
-                        ori_fc.keyframe_points[frame_i].co.x = frame_xpos
-                        ori_fc.keyframe_points[frame_i].co.y = ori_entry
-
-        else:
-            raise Exception("Unknown connectivity? This should never happen")
+        if (connectivity == "CONNECTED") and inherit_rotations:
+            frame_ori = global_to_inherited_quats(frame_ori, joints_lite,
+                                                  seg2idx)
+        for pb, glob_loc, glob_ori in zip(pose_bones, frame_pos, frame_ori):
+            b_name = pb.name
+            # fill location curves
+            loc_fcurves = fcurves[b_name]["loc"]
+            if loc_fcurves:
+                # this happens always, independently of rotation inheritance
+                bone_loc = global_loc_to_bone(glob_loc * scale, b_name)      ###  * scale
+                for loc_fc, loc_entry in zip(loc_fcurves, bone_loc):
+                    loc_fc.keyframe_points[frame_i].co.x = frame_time
+                    loc_fc.keyframe_points[frame_i].co.y = loc_entry
+            # fill orientation curves
+            ori_fcurves = fcurves[b_name]["ori"]
+            if ori_fcurves:
+                bone_ori = global_quat_to_bone(glob_ori, b_name)
+                for ori_fc, ori_entry in zip(ori_fcurves, bone_ori):
+                    ori_fc.keyframe_points[frame_i].co.x = frame_time
+                    ori_fc.keyframe_points[frame_i].co.y = ori_entry
 
     # Done with animation importing. Final global configs:
 
     # set anim speed. actual_fps = scene.render.fps / scene.render.fps_base
     context.scene.render.fps_base = 1.0
     context.scene.render.fps = frame_rate
+    context.scene.frame_start = int(frame_start)
+    context.scene.frame_end = context.scene.frame_start + num_frames + 1
 
     # finally config curves, apply matrix and return armature
     for c in action.fcurves:
@@ -386,6 +353,3 @@ def load_mvnx_into_blender(
     # arm_ob.matrix_world = global_matrix
     # bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
     return arm_ob
-
-
-

@@ -13,11 +13,18 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Class for parsing MVNX into Mvnx object (Blender-agnostic)
+* Importer operator with button in I/O panel
+* Importer routine with mode for both connected and individual bones
+* Import works with and without inheriting angles
+* Importer allows resizing everything by a factor
+
+
 ### TODO:
 
-* Facilities for parsing MVNX
-* Importing MVNX as set of objects with position, rotation and attributes
-* Importing MVNX in a BVH-alike fashion: just skeleton and angles
+
 * Compatibility with MakeHuman?
 * CI with blender?
 * Adapt skeleton depending on config like mvnx.subject.attrib["configuration"] = "UpperBody"
+* Global rotation matrix?
+* Better handling of time scale/precision?

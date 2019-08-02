@@ -63,13 +63,13 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
     )
 
     connectivity: EnumProperty(
-        items=(('CONNECTED', "Connected", ""),
-               ('INDIVIDUAL', "Individual", "")),
+        items=(('INDIVIDUAL', "Individual", ""),
+               ('CONNECTED', "Connected", "")),
         name="Information to be imported, and structure to be generated.",
         description=("CONNECTED: A tree of connected bones. Position is only" +
                      " taken for roots. INDIVIDUAL: each bone is isolated " +
                      "and becomes position and orientation separately."),
-        default='CONNECTED',
+        default='INDIVIDUAL',
     )
 
     scale: FloatProperty(
