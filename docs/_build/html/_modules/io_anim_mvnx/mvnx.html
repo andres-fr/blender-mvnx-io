@@ -156,11 +156,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains functionality concerning the adaption of the</span>
 <span class="sd">XSENS MVN-XML format into our Python setup.</span>
+<span class="sd">The adaption tries to be as MVN-version-agnostc as possible. Still,</span>
+<span class="sd">it is possible to validate the file against a given schema.</span>
 
-<span class="sd">The official explanation can be found in section 14.4 of this document::</span>
+<span class="sd">The official explanation can be found in section 14.4 of the</span>
+<span class="sd">*XSENS MVN User Manual*:</span>
+
 <span class="sd">  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</span>
 
-<span class="sd">A copy is stored in this repository.</span>
+<span class="sd">A copy is stored in this package&#39;s repository:</span>
+
+<span class="sd">  https://github.com/andres-fr/blender-mvnx-io</span>
 
 <span class="sd">The following section introduces more informally the contents of the imported</span>
 <span class="sd">MVN file and the way they can be accessed from Python::</span>
@@ -204,47 +210,35 @@
 <span class="sd">  # The bulk of the data is in the frames.</span>
 <span class="sd">  frames_metadata, config_frames, normal_frames = mmvn.extract_frame_info()</span>
 
-<span class="sd">  # Metadata looks like this:</span>
-<span class="sd">  {&#39;segmentCount&#39;: &#39;23&#39;, &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}</span>
 
-<span class="sd">  # config frames have the following fields:</span>
+<span class="sd">When calling ``extract_frame_info``, we expect specific fields to have</span>
+<span class="sd">specific datatypes. This is reflected In the globals::</span>
+
+<span class="sd">  KNOWN_STR_FIELDS, KNOWN_INT_FIELDS, KNOWN_FLOAT_VEC_FIELDS</span>
+
+<span class="sd">These are passed as default parameters to the Mvnx constructor, but can be</span>
+<span class="sd">changed at will. The following exemplifies how the metadata could look like:</span>
+
+<span class="sd">Metadata::</span>
+
+<span class="sd">  {&#39;segmentCount&#39;: 23, &#39;sensorCount&#39;: 17, &#39;jointCount&#39;: 22}</span>
+
+<span class="sd">And this what fields would the non-normal frames have::</span>
+
 <span class="sd">  [&#39;orientation&#39;, &#39;position&#39;, &#39;time&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]</span>
 
-<span class="sd">  # normal frames have the following fields:</span>
+<span class="sd">As for the normal frames::</span>
+
 <span class="sd">  [&#39;orientation&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;acceleration&#39;,</span>
 <span class="sd">   &#39;angularVelocity&#39;, &#39;angularAcceleration&#39;, &#39;footContacts&#39;,</span>
 <span class="sd">   &#39;sensorFreeAcceleration&#39;, &#39;sensorMagneticField&#39;, &#39;sensorOrientation&#39;,</span>
 <span class="sd">   &#39;jointAngle&#39;, &#39;jointAngleXZY&#39;, &#39;jointAngleErgo&#39;, &#39;centerOfMass&#39;, &#39;time&#39;,</span>
 <span class="sd">   &#39;index&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]</span>
 
-<span class="sd">The following fields contain metadata about the frame:</span>
+<span class="sd">More information about the MVNX format can be found in section 14.4 of the</span>
+<span class="sd">already mentioned document:</span>
 
-<span class="sd">:time: ms since start (integer). It is close to</span>
-<span class="sd">  ``int(1000.0 * index / samplerate)``, being equal most of the times and</span>
-<span class="sd">  at most 1 milisecond away. It is neither truncated nor rounded, maybe it</span>
-<span class="sd">  is given by the hardware.</span>
-<span class="sd">:index: starts with 0, +1 each normal frame</span>
-<span class="sd">:tc: string like &#39;02:23:28:164&#39;</span>
-<span class="sd">:ms: unix timestamp like 1515983008686 (used to compute time)</span>
-<span class="sd">:type: one of &quot;identity&quot;, &quot;tpose&quot;, &quot;tpose-isb&quot;, &quot;normal&quot;</span>
-
-<span class="sd"># The following fields are float vectors of the following dimensionality:</span>
-
-<span class="sd">:orientation: ``segmentCount*4 = 92`` Quaternion vector</span>
-<span class="sd">:position, velocity, acceleration, angularVelocity, angularAcceleration:</span>
-<span class="sd">  ``segmentCount*3 = 69`` 3D vectors in ``(x,y,z)`` format</span>
-<span class="sd">:footContacts: ``4`` 4D boolean vector</span>
-<span class="sd">:sensorFreeAcceleration, sensorMagneticField: ``sensorCount*3 = 51``</span>
-<span class="sd">:sensorOrientation: ``sensorCount*4 = 68``</span>
-<span class="sd">:jointAngle, jointAngleXZY: ``jointCount*3 = 66``</span>
-<span class="sd">:jointAngleErgo: ``12``</span>
-<span class="sd">:centerOfMass: ``3``</span>
-
-<span class="sd">The units are SI for position, velocity and acceleration. Angular magnitudes</span>
-<span class="sd">are in radians except the ``jointAngle...`` ones that are in degrees. All 3D</span>
-<span class="sd">vectors are in ``(x,y,z)`` format, but the ``jointAngle...`` ones differ in</span>
-<span class="sd">the Euler-rotation order by which they are computed (ZXY, standard or XZY,</span>
-<span class="sd">for shoulders usually).</span>
+<span class="sd">  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -259,10 +253,52 @@
 <span class="c1"># ## GLOBALS</span>
 <span class="c1"># #############################################################################</span>
 
+<span class="n">KNOWN_STR_FIELDS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tc&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">}</span>
+<span class="n">KNOWN_INT_FIELDS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">,</span> <span class="s2">&quot;sensorCount&quot;</span><span class="p">,</span> <span class="s2">&quot;jointCount&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">}</span>  <span class="c1"># &quot;audio_sample&quot;</span>
+<span class="n">KNOWN_FLOAT_VEC_FIELDS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;orientation&quot;</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;velocity&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;acceleration&quot;</span><span class="p">,</span> <span class="s2">&quot;angularVelocity&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;angularAcceleration&quot;</span><span class="p">,</span> <span class="s2">&quot;sensorFreeAcceleration&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;sensorMagneticField&quot;</span><span class="p">,</span> <span class="s2">&quot;sensorOrientation&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;jointAngle&quot;</span><span class="p">,</span> <span class="s2">&quot;jointAngleXZY&quot;</span><span class="p">,</span> <span class="s2">&quot;jointAngleErgo&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;centerOfMass&quot;</span><span class="p">}</span>
+
 
 <span class="c1"># #############################################################################</span>
 <span class="c1"># ## HELPERS</span>
 <span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="str_to_vec"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.str_to_vec">[docs]</a><span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a node with a text like &#39;1.23, 2.34 ...&#39; into a list</span>
+<span class="sd">    like [1.23, 2.34, ...]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not convert to vector (skip conversion):&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="process_dict"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.process_dict">[docs]</a><span class="k">def</span> <span class="nf">process_dict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">str_fields</span><span class="p">,</span> <span class="n">int_fields</span><span class="p">,</span> <span class="n">fvec_fields</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :returns: a copy of the given dict where the values (expected strings)</span>
+<span class="sd">      whose keys are in the specified fields are converted to the specified</span>
+<span class="sd">      type. E.g. If ``int_fields`` contains the ``index`` string and the given</span>
+<span class="sd">      dict contains the ``index`` key, the corresponding value will be</span>
+<span class="sd">      converted via ``int()``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">str_fields</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">int_fields</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">fvec_fields</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">str_to_vec</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <span class="c1"># #############################################################################</span>
@@ -275,11 +311,15 @@
 <span class="sd">    to a Python-friendly representation. See this module&#39;s docstring for usage</span>
 <span class="sd">    examples and more information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvnx_path</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvnx_path</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">str_fields</span><span class="o">=</span><span class="n">KNOWN_STR_FIELDS</span><span class="p">,</span> <span class="n">int_fields</span><span class="o">=</span><span class="n">KNOWN_INT_FIELDS</span><span class="p">,</span>
+                 <span class="n">float_vec_fields</span><span class="o">=</span><span class="n">KNOWN_FLOAT_VEC_FIELDS</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str mvnx_path: a valid path pointing to the XML file to load</span>
 <span class="sd">        :param str mvnx_schema_path: (optional): if given, the given MVNX will</span>
 <span class="sd">          be validated against this XML schema definition.</span>
+<span class="sd">        :param collection fields: List of strings with field names that are</span>
+<span class="sd">          converted to the specified type when calling ``extract_frame_info``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_path</span> <span class="o">=</span> <span class="n">mvnx_path</span>
         <span class="c1">#</span>
@@ -290,6 +330,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">assertValid</span><span class="p">(</span><span class="n">mvnx</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">mvnx</span><span class="p">))</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">str_fields</span> <span class="o">=</span> <span class="n">str_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int_fields</span> <span class="o">=</span> <span class="n">int_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fvec_fields</span> <span class="o">=</span> <span class="n">float_vec_fields</span>
 
 <div class="viewcode-block" id="Mvnx.export"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -312,63 +356,48 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">f_meta</span><span class="p">,</span> <span class="n">config_f</span><span class="p">,</span> <span class="n">normal_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="p">)</span>
+        <span class="n">f_meta</span><span class="p">,</span> <span class="n">config_f</span><span class="p">,</span> <span class="n">normal_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvnx</span><span class="p">,</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">str_fields</span><span class="p">,</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">int_fields</span><span class="p">,</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">fvec_fields</span><span class="p">)</span>
         <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">f_meta</span>
         <span class="n">config_frames</span> <span class="o">=</span> <span class="n">config_f</span>
         <span class="n">normal_frames</span> <span class="o">=</span> <span class="n">normal_f</span>
         <span class="c1">#</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span> <span class="o">==</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">]</span> <span class="o">==</span>
                 <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_segments</span><span class="p">())),</span> <span class="s2">&quot;Inconsistent segmentCount?&quot;</span>
         <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
 
 <div class="viewcode-block" id="Mvnx.extract_frames"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_frames">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">extract_frames</span><span class="p">(</span><span class="n">mvnx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">extract_frames</span><span class="p">(</span><span class="n">mvnx</span><span class="p">,</span> <span class="n">str_fields</span><span class="p">,</span> <span class="n">int_fields</span><span class="p">,</span> <span class="n">fvec_fields</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The bulk of the MVNX file is the ``mvnx-&gt;subject-&gt;frames`` section.</span>
 <span class="sd">        This function parses it and returns its information in a</span>
-<span class="sd">        python-friendly format.</span>
+<span class="sd">        python-friendly format, mainly via the ``process_dict`` function.</span>
 
 <span class="sd">        :param mvnx: An XML tree, expected to be in MVNX format</span>
+<span class="sd">        :param collection fields: Collection of strings with field names that</span>
+<span class="sd">          are converted to the specified type (fvec is a vector of floats).</span>
 
 <span class="sd">        :returns: a tuple ``(frames_metadata, config_frames, normal_frames)``</span>
-<span class="sd">          where the metadata is a dict in the form ``{&#39;segmentCount&#39;: &#39;23&#39;,</span>
-<span class="sd">          &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}``, the config frames are the</span>
+<span class="sd">          where the metadata is a dict in the form ``{&#39;segmentCount&#39;: 23,</span>
+<span class="sd">          &#39;sensorCount&#39;: 17, &#39;jointCount&#39;: 22}``, the config frames are the</span>
 <span class="sd">          first 3 frame entries (expected to contain special config info)</span>
-<span class="sd">          and the normal_frames are all frames starting from the 4th. Both</span>
-<span class="sd">          frame outputs are relational collections of dictionaries that can be</span>
-<span class="sd">          formatted into tabular form.</span>
+<span class="sd">          and the normal_frames are all frames starting from the 4th.</span>
+<span class="sd">          Fields found in the given int and vec field lists will be converted</span>
+<span class="sd">          and the rest will remain as XML nodes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">frame_to_dict</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">is_normal</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            A frame node has a dict of ``attribs`` and a dict of ``items``.</span>
-<span class="sd">            This function merges both and returns a single python dict</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">def</span> <span class="nf">str_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                Converts a node with a text like &#39;1.23, 2.34 ...&#39; into a list</span>
-<span class="sd">                like [1.23, 2.34, ...]</span>
-<span class="sd">                &quot;&quot;&quot;</span>
-                <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
-
-            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">str_to_vec</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
-                 <span class="o">**</span><span class="n">frame</span><span class="o">.</span><span class="n">attrib</span><span class="p">}</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>  <span class="c1"># ms since start, i.e. ms_i - ms_0</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">])</span>  <span class="c1"># unix timestamp, ms since epoch</span>
-            <span class="k">if</span> <span class="n">is_normal</span><span class="p">:</span>  <span class="c1"># only normal frames have index</span>
-                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>  <span class="c1"># starts by 0, increases by 1</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">])</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">pass</span>
-            <span class="k">return</span> <span class="n">d</span>
-        <span class="c1">#</span>
-        <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">attrib</span>
-        <span class="n">all_frames</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+        <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">process_dict</span><span class="p">(</span><span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span>
+                                       <span class="n">str_fields</span><span class="p">,</span> <span class="n">int_fields</span><span class="p">,</span> <span class="n">fvec_fields</span><span class="p">)</span>
         <span class="c1"># first 3 frames are config. types: &quot;identity&quot;, &quot;tpose&quot;, &quot;tpose-isb&quot;</span>
+        <span class="n">all_frames</span> <span class="o">=</span> <span class="n">mvnx</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
         <span class="c1"># rest of frames contain proper data. type: &quot;normal&quot;</span>
-        <span class="n">config_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[:</span><span class="mi">3</span><span class="p">]]</span>
-        <span class="n">normal_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[</span><span class="mi">3</span><span class="p">:]]</span>
-        <span class="c1">#</span>
+        <span class="n">config_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_dict</span><span class="p">({</span><span class="o">**</span><span class="n">f</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="o">**</span><span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">},</span>
+                                      <span class="n">str_fields</span><span class="p">,</span> <span class="n">int_fields</span><span class="p">,</span> <span class="n">fvec_fields</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[:</span><span class="mi">3</span><span class="p">]]</span>
+        <span class="n">normal_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_dict</span><span class="p">({</span><span class="o">**</span><span class="n">f</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="o">**</span><span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">},</span>
+                                      <span class="n">str_fields</span><span class="p">,</span> <span class="n">int_fields</span><span class="p">,</span> <span class="n">fvec_fields</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[</span><span class="mi">3</span><span class="p">:]]</span>
         <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
 
 <div class="viewcode-block" id="Mvnx.extract_segments"><a class="viewcode-back" href="../../io_anim_mvnx.html#io_anim_mvnx.mvnx.Mvnx.extract_segments">[docs]</a>    <span class="k">def</span> <span class="nf">extract_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

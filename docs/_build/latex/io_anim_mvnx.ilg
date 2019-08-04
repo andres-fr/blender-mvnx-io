@@ -1,7 +1,7 @@
-This is makeindex, version 2.15 [TeX Live 2015] (kpathsea + Thai support).
+This is makeindex, version 2.15 [TeX Live 2017] (kpathsea + Thai support).
 Scanning style file ./python.ist.......done (7 attributes redefined, 0 ignored).
-Scanning input file io_anim_mvnx.idx....done (41 entries accepted, 0 rejected).
-Sorting entries....done (233 comparisons).
-Generating output file io_anim_mvnx.ind....done (100 lines written, 0 warnings).
+Scanning input file io_anim_mvnx.idx....done (44 entries accepted, 0 rejected).
+Sorting entries....done (255 comparisons).
+Generating output file io_anim_mvnx.ind....done (107 lines written, 0 warnings).
 Output written in io_anim_mvnx.ind.
 Transcript written in io_anim_mvnx.ilg.

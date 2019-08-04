@@ -4,11 +4,17 @@
 """
 This module contains functionality concerning the adaption of the
 XSENS MVN-XML format into our Python setup.
+The adaption tries to be as MVN-version-agnostc as possible. Still,
+it is possible to validate the file against a given schema.
 
-The official explanation can be found in section 14.4 of this document::
+The official explanation can be found in section 14.4 of the
+*XSENS MVN User Manual*:
+
   https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf
 
-A copy is stored in this repository.
+A copy is stored in this package's repository:
+
+  https://github.com/andres-fr/blender-mvnx-io
 
 The following section introduces more informally the contents of the imported
 MVN file and the way they can be accessed from Python::
@@ -52,47 +58,35 @@ MVN file and the way they can be accessed from Python::
   # The bulk of the data is in the frames.
   frames_metadata, config_frames, normal_frames = mmvn.extract_frame_info()
 
-  # Metadata looks like this:
-  {'segmentCount': '23', 'sensorCount': '17', 'jointCount': '22'}
 
-  # config frames have the following fields:
+When calling ``extract_frame_info``, we expect specific fields to have
+specific datatypes. This is reflected In the globals::
+
+  KNOWN_STR_FIELDS, KNOWN_INT_FIELDS, KNOWN_FLOAT_VEC_FIELDS
+
+These are passed as default parameters to the Mvnx constructor, but can be
+changed at will. The following exemplifies how the metadata could look like:
+
+Metadata::
+
+  {'segmentCount': 23, 'sensorCount': 17, 'jointCount': 22}
+
+And this what fields would the non-normal frames have::
+
   ['orientation', 'position', 'time', 'tc', 'ms', 'type']
 
-  # normal frames have the following fields:
+As for the normal frames::
+
   ['orientation', 'position', 'velocity', 'acceleration',
    'angularVelocity', 'angularAcceleration', 'footContacts',
    'sensorFreeAcceleration', 'sensorMagneticField', 'sensorOrientation',
    'jointAngle', 'jointAngleXZY', 'jointAngleErgo', 'centerOfMass', 'time',
    'index', 'tc', 'ms', 'type']
 
-The following fields contain metadata about the frame:
+More information about the MVNX format can be found in section 14.4 of the
+already mentioned document:
 
-:time: ms since start (integer). It is close to
-  ``int(1000.0 * index / samplerate)``, being equal most of the times and
-  at most 1 milisecond away. It is neither truncated nor rounded, maybe it
-  is given by the hardware.
-:index: starts with 0, +1 each normal frame
-:tc: string like '02:23:28:164'
-:ms: unix timestamp like 1515983008686 (used to compute time)
-:type: one of "identity", "tpose", "tpose-isb", "normal"
-
-# The following fields are float vectors of the following dimensionality:
-
-:orientation: ``segmentCount*4 = 92`` Quaternion vector
-:position, velocity, acceleration, angularVelocity, angularAcceleration:
-  ``segmentCount*3 = 69`` 3D vectors in ``(x,y,z)`` format
-:footContacts: ``4`` 4D boolean vector
-:sensorFreeAcceleration, sensorMagneticField: ``sensorCount*3 = 51``
-:sensorOrientation: ``sensorCount*4 = 68``
-:jointAngle, jointAngleXZY: ``jointCount*3 = 66``
-:jointAngleErgo: ``12``
-:centerOfMass: ``3``
-
-The units are SI for position, velocity and acceleration. Angular magnitudes
-are in radians except the ``jointAngle...`` ones that are in degrees. All 3D
-vectors are in ``(x,y,z)`` format, but the ``jointAngle...`` ones differ in
-the Euler-rotation order by which they are computed (ZXY, standard or XZY,
-for shoulders usually).
+  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf
 """
 
 
@@ -107,10 +101,52 @@ from .utils import make_timestamp  # , resolve_path
 # ## GLOBALS
 # #############################################################################
 
+KNOWN_STR_FIELDS = {"tc", "type"}
+KNOWN_INT_FIELDS = {"segmentCount", "sensorCount", "jointCount",
+                    "time", "index", "ms"}  # "audio_sample"
+KNOWN_FLOAT_VEC_FIELDS = {"orientation", "position", "velocity",
+                          "acceleration", "angularVelocity",
+                          "angularAcceleration", "sensorFreeAcceleration",
+                          "sensorMagneticField", "sensorOrientation",
+                          "jointAngle", "jointAngleXZY", "jointAngleErgo",
+                          "centerOfMass"}
+
 
 # #############################################################################
 # ## HELPERS
 # #############################################################################
+
+def str_to_vec(x):
+    """
+    Converts a node with a text like '1.23, 2.34 ...' into a list
+    like [1.23, 2.34, ...]
+    """
+    try:
+        return [float(y) for y in x.text.split(" ")]
+    except Exception as e:
+        print("Could not convert to vector (skip conversion):", e)
+        return x
+
+
+def process_dict(d, str_fields, int_fields, fvec_fields):
+    """
+    :returns: a copy of the given dict where the values (expected strings)
+      whose keys are in the specified fields are converted to the specified
+      type. E.g. If ``int_fields`` contains the ``index`` string and the given
+      dict contains the ``index`` key, the corresponding value will be
+      converted via ``int()``.
+    """
+    result = {}
+    for k, v in d.items():
+        if k in str_fields:
+            result[k] = str(v)
+        elif k in int_fields:
+            result[k] = int(v)
+        elif k in fvec_fields:
+            result[k] = str_to_vec(v)
+        else:
+            result[k] = v
+    return result
 
 
 # #############################################################################
@@ -123,11 +159,15 @@ class Mvnx:
     to a Python-friendly representation. See this module's docstring for usage
     examples and more information.
     """
-    def __init__(self, mvnx_path, mvnx_schema_path=None):
+    def __init__(self, mvnx_path, mvnx_schema_path=None,
+                 str_fields=KNOWN_STR_FIELDS, int_fields=KNOWN_INT_FIELDS,
+                 float_vec_fields=KNOWN_FLOAT_VEC_FIELDS):
         """
         :param str mvnx_path: a valid path pointing to the XML file to load
         :param str mvnx_schema_path: (optional): if given, the given MVNX will
           be validated against this XML schema definition.
+        :param collection fields: List of strings with field names that are
+          converted to the specified type when calling ``extract_frame_info``.
         """
         self.mvnx_path = mvnx_path
         #
@@ -138,6 +178,10 @@ class Mvnx:
             self.schema.assertValid(mvnx)
         #
         self.mvnx = objectify.fromstring(etree.tostring(mvnx))
+        #
+        self.str_fields = str_fields
+        self.int_fields = int_fields
+        self.fvec_fields = float_vec_fields
 
     def export(self, filepath, pretty_print=True, extra_comment=""):
         """
@@ -160,63 +204,48 @@ class Mvnx:
         """
         :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``
         """
-        f_meta, config_f, normal_f = self.extract_frames(self.mvnx)
+        f_meta, config_f, normal_f = self.extract_frames(self.mvnx,
+                                                         self.str_fields,
+                                                         self.int_fields,
+                                                         self.fvec_fields)
         frames_metadata = f_meta
         config_frames = config_f
         normal_frames = normal_f
         #
-        assert (int(frames_metadata["segmentCount"]) ==
+        assert (frames_metadata["segmentCount"] ==
                 len(self.extract_segments())), "Inconsistent segmentCount?"
         return frames_metadata, config_frames, normal_frames
 
     @staticmethod
-    def extract_frames(mvnx):
+    def extract_frames(mvnx, str_fields, int_fields, fvec_fields):
         """
         The bulk of the MVNX file is the ``mvnx->subject->frames`` section.
         This function parses it and returns its information in a
-        python-friendly format.
+        python-friendly format, mainly via the ``process_dict`` function.
 
         :param mvnx: An XML tree, expected to be in MVNX format
+        :param collection fields: Collection of strings with field names that
+          are converted to the specified type (fvec is a vector of floats).
 
         :returns: a tuple ``(frames_metadata, config_frames, normal_frames)``
-          where the metadata is a dict in the form ``{'segmentCount': '23',
-          'sensorCount': '17', 'jointCount': '22'}``, the config frames are the
+          where the metadata is a dict in the form ``{'segmentCount': 23,
+          'sensorCount': 17, 'jointCount': 22}``, the config frames are the
           first 3 frame entries (expected to contain special config info)
-          and the normal_frames are all frames starting from the 4th. Both
-          frame outputs are relational collections of dictionaries that can be
-          formatted into tabular form.
+          and the normal_frames are all frames starting from the 4th.
+          Fields found in the given int and vec field lists will be converted
+          and the rest will remain as XML nodes.
         """
-        def frame_to_dict(frame, is_normal):
-            """
-            A frame node has a dict of ``attribs`` and a dict of ``items``.
-            This function merges both and returns a single python dict
-            """
-            def str_to_vec(x):
-                """
-                Converts a node with a text like '1.23, 2.34 ...' into a list
-                like [1.23, 2.34, ...]
-                """
-                return [float(y) for y in x.text.split(" ")]
-
-            d = {**{k: str_to_vec(v) for k, v in frame.__dict__.items()},
-                 **frame.attrib}
-            d["time"] = int(d["time"])  # ms since start, i.e. ms_i - ms_0
-            d["ms"] = int(d["ms"])  # unix timestamp, ms since epoch
-            if is_normal:  # only normal frames have index
-                d["index"] = int(d["index"])  # starts by 0, increases by 1
-            try:
-                d["audio_sample"] = int(d["audio_sample"])
-            except KeyError:
-                pass
-            return d
-        #
-        frames_metadata = mvnx.subject.frames.attrib
-        all_frames = mvnx.subject.frames.getchildren()
+        frames_metadata = process_dict(mvnx.subject.frames.attrib,
+                                       str_fields, int_fields, fvec_fields)
         # first 3 frames are config. types: "identity", "tpose", "tpose-isb"
+        all_frames = mvnx.subject.frames.getchildren()
         # rest of frames contain proper data. type: "normal"
-        config_frames = [frame_to_dict(f, False) for f in all_frames[:3]]
-        normal_frames = [frame_to_dict(f, True) for f in all_frames[3:]]
-        #
+        config_frames = [process_dict({**f.__dict__, **f.attrib},
+                                      str_fields, int_fields, fvec_fields)
+                         for f in all_frames[:3]]
+        normal_frames = [process_dict({**f.__dict__, **f.attrib},
+                                      str_fields, int_fields, fvec_fields)
+                         for f in all_frames[3:]]
         return frames_metadata, config_frames, normal_frames
 
     def extract_segments(self):

@@ -6,6 +6,16 @@ This module contains the required functionality to import an MVNX file as a
 moving set of bones into Blender.
 
 It allows for different options regarding their connectivity, scale...
+
+The general workflow is documented in section 5 of the *Moven User Manual*:
+
+  http://www.cs.unc.edu/Research/stc/FAQs/Xsens/Moven/Moven%20User%20Manual.pdf
+
+A copy is stored in this package's repository:
+
+  https://github.com/andres-fr/blender-mvnx-io
+
+See the specific docstrings and code commentary for more details.
 """
 
 
@@ -47,7 +57,7 @@ def set_bone_head_and_tail(bone, segment_points, joints,
 
     For a given bone, this function reads the information of its parent and,
     given some MVNX data and assumptions, calculates its head and tail
-    positions.
+    positions. It is also responsible of rescaling the armature.
 
     .. warning::
       This function assumes the following:
@@ -87,11 +97,11 @@ def set_bone_head_and_tail(bone, segment_points, joints,
     if not bone.children:
         # if leaf, we assume a point in leaf_points exists
         tail_offs = next(v for k, v in segment_points[b_name].items()
-                         if k in leaf_points)
+                         if k in leaf_points).copy()
     else:
         # get first joint that contains this bone as parent
         j = next(p1 for ((c1, p1), _) in joints if c1 == b_name)
-        tail_offs = segment_points[b_name][j]
+        tail_offs = segment_points[b_name][j].copy()
     if scale != 1.0:
         tail_offs *= scale
     bone.tail = bone.head.copy() + tail_offs
@@ -112,10 +122,8 @@ def global_to_inherited_quats(quaternions, joints, name_to_idx_map):
       q_child_relative = q_parent_glob.conjugated() * q_child_glob
 
     .. warning::
-      This function assumes that the joints are given topologically sorted,
-      i.e. that all parents prior to the current connection have been already
-      visited when iterating the joint list from left to right (starting with
-      the roots, and going down the leafs in order).
+      This function assumes that all the input quaternion orientations are
+      given with respect to the same global reference.
     """
     result = [q.copy() for q in quaternions]
     for c_ori, c_dest in joints:
@@ -138,13 +146,45 @@ def load_mvnx_into_blender(
         frame_start=0.0,
         inherit_rotations=True,
         add_identity_pose=True,
-        add_t_pose=True):
+        add_t_pose=True,
+        verbose=True):
     """
+    :param context: A Blender context like bpy.context
+    :param filepath: Path expected to point to an MVNX file (XML)
+    :param mvnx_schema_path: Optional path to a validation schema for the MVNX
+    :param str connectivity: One of ``['CONNECTED', 'INDIVIDUAL']``. If
+      individual, all bones will have no parent and no children, and their
+      positions and rotations will be loaded independently from the others.
+      If connected, the relations defined in the MVNX will be regarded to form
+      a tree of bones, where only the tree roots will have a position. All
+      bones will in any case have angles: see ``inherit_rotations`` for more
+      information.
+    :param bool inherit_rotations: If true, rotating a bone will propagate
+      the same rotation to all its children, so the rotations are expressed
+      with respect to the parent. Otherwise the rotations are absolute and
+      rotating a bone will displace the children but their orientation won't
+      change. Note that in both modes the imported animation will look
+      identical.
+    :param bool add_identity_pose: If true, the 'identity' frame (zero
+      rotations) is added at the beginning of the sequence.
+    :param bool add_t_pose: If true, the 'tpose' frame is added at the
+      beginning of the sequence (but after the identity if given).
+    :param bool verbose: If true, prints some information about the process
+      to the terminal.
+
+    The main routine in this module: given the MVNX information and some other
+    configurations, it creates a set of bones in Blender (so-called *Armature*)
+    that will have the shape and perform the sequence specified in the MVNX.
+    The function returns a pointer to the armature, whose name will be the same
+    as the MVNX file imported (plus potentially extra '.XYZ' digits if a file
+    is imported multiple times).
     """
     # sanity check
     assert scale > 0, "Scale has to be positive!"
 
     # load MVNX object and basic metadata
+    if verbose:
+        print("Loading MVNX and extracting basic data...")
     mvnx_filename = basename(filepath)
     mvnx = Mvnx(filepath, mvnx_schema_path)
     #
@@ -167,14 +207,15 @@ def load_mvnx_into_blender(
     _, joints = mvnx.extract_joints()
     joints_lite = [(ori, dest) for ((ori, _), (dest, _)) in joints]
     #
-    num_segments = int(frames_metadata["segmentCount"])
+    num_segments = frames_metadata["segmentCount"]
     num_frames = len(all_frames)
-    report({'INFO'}, "Loading %s (%d frames)" % (mvnx_filename, num_frames))
     frame_rate = int(mvnx.mvnx.subject.attrib["frameRate"])
     #
     assert len(segments) == num_segments, "Inconsistent segmentCount?"
 
     # create armature and prepare to fill it
+    if verbose:
+        print("Creating and filling Blender armature...")
     bpy.ops.object.select_all(action='DESELECT')
     arm_data = bpy.data.armatures.new(mvnx_filename)
     arm_ob = bpy.data.objects.new(mvnx_filename, arm_data)
@@ -208,6 +249,9 @@ def load_mvnx_into_blender(
 
     # Animation part:
     # prepare animation: create action and assign it to the armature
+    if verbose:
+        print("Loading animation (%d frames)." % num_frames,
+              " This may take a while...")
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     context.view_layer.update()
     arm_ob.animation_data_create()
@@ -299,6 +343,8 @@ def load_mvnx_into_blender(
     # have to be inherited only if connectivity=="CONNECTED" and
     # inherit_rotations is true.
     for frame_i, frame in enumerate(all_frames):
+        if verbose and (frame_i % 1000 == 0):
+                print("   loaded frame %d/%d" % (frame_i, num_frames))
         frame_time = frame_i + frame_start
         frame_pos = [Vector(frame["position"][i: i+3])
                      for i in range(0, 3 * num_segments, 3)]
@@ -333,7 +379,7 @@ def load_mvnx_into_blender(
     context.scene.render.fps = frame_rate
     context.scene.frame_start = int(frame_start)
     context.scene.frame_end = context.scene.frame_start + num_frames + 1
-
+    context.scene.frame_set(context.scene.frame_start)
     # finally config curves, apply matrix and return armature
     for c in action.fcurves:
         # if IMPORT_LOOP:
@@ -342,4 +388,9 @@ def load_mvnx_into_blender(
             ckfp.interpolation = "CONSTANT"  # "LINEAR" "CUBIC" "BEZIER"
     # arm_ob.matrix_world = global_matrix
     # bpy.ops.object.transform_apply(location=False,rotation=True,scale=False)
+
+    context.view_layer.update()
+    report({'INFO'}, "Loaded %s (%d frames)" % (mvnx_filename, num_frames))
+    if verbose:
+        print("Loaded %s (%d frames)" % (mvnx_filename, num_frames))
     return arm_ob

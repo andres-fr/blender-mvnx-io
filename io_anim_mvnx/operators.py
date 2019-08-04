@@ -10,6 +10,9 @@ other UI elements.
 
 __author__ = "Andres FR"
 
+import lxml
+import traceback
+#
 # from mathutils import Vector  # mathutils is a blender package
 import bpy
 #
@@ -34,6 +37,8 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
     bl_idname = "import_anim.mvnx"
     bl_label = "Import MVNX"
     bl_options = {'REGISTER', 'UNDO'}
+
+    VERBOSE_IMPORT = True  # print process info while importing
 
     # filename_ext = ".mvnx"
     filter_glob: StringProperty(default="*.mvnx", options={'HIDDEN'})
@@ -92,17 +97,25 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         """
         Passes the properties captured by the UI to the load_mvnx_into_blender
         function.
-        :returns: ``{"FINISHED"}`` if everything went OK.
+
+        :returns: ``{'FINISHED'}`` if everything went OK, ``{'CANCELLED'}``
+          otherwise.
         """
         # as_keywords returns a copy of the properties as a dict.
         keywords = self.as_keywords(ignore=(
-            # "axis_forward", "axis_up",
             "filter_glob",))
         if not self.mvnx_schema_path:
             keywords["mvnx_schema_path"] = None
-        # afwd = self.axis_forward
-        # aup = self.axis_up
-        # global_mat = axis_conversion(from_forward=afwd, from_up=aup).to_4x4()
-        # keywords["global_matrix"] = global_mat
-        load_mvnx_into_blender(context, report=self.report, **keywords)
-        return({"FINISHED"})
+        keywords["verbose"] = self.VERBOSE_IMPORT
+        try:
+            load_mvnx_into_blender(context, report=self.report, **keywords)
+            return {'FINISHED'}
+        except Exception as e:
+            if isinstance(e, lxml.etree.DocumentInvalid):
+                self.report({'ERROR'},
+                            "MNVX didn't pass given validation schema. " +
+                            "Remove schema path to bypass validation.")
+            else:
+                self.report({'ERROR'}, "Something went wrong: " + str(e))
+            traceback.print_exc()
+            return {'CANCELLED'}

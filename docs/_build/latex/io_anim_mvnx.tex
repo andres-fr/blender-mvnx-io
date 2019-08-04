@@ -9,49 +9,19 @@
 \usepackage[utf8]{inputenc}
 \ifdefined\DeclareUnicodeCharacter
 % support both utf8 and utf8x syntaxes
-  \ifdefined\DeclareUnicodeCharacterAsOptional
-    \def\sphinxDUC#1{\DeclareUnicodeCharacter{"#1}}
-  \else
-    \let\sphinxDUC\DeclareUnicodeCharacter
-  \fi
-  \sphinxDUC{00A0}{\nobreakspace}
-  \sphinxDUC{2500}{\sphinxunichar{2500}}
-  \sphinxDUC{2502}{\sphinxunichar{2502}}
-  \sphinxDUC{2514}{\sphinxunichar{2514}}
-  \sphinxDUC{251C}{\sphinxunichar{251C}}
-  \sphinxDUC{2572}{\textbackslash}
+\edef\sphinxdqmaybe{\ifdefined\DeclareUnicodeCharacterAsOptional\string"\fi}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe00A0}{\nobreakspace}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2500}{\sphinxunichar{2500}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2502}{\sphinxunichar{2502}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2514}{\sphinxunichar{2514}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe251C}{\sphinxunichar{251C}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2572}{\textbackslash}
 \fi
 \usepackage{cmap}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amstext}
 \usepackage{babel}
-
-
-
 \usepackage{times}
-\expandafter\ifx\csname T@LGR\endcsname\relax
-\else
-% LGR was declared as font encoding
-  \substitutefont{LGR}{\rmdefault}{cmr}
-  \substitutefont{LGR}{\sfdefault}{cmss}
-  \substitutefont{LGR}{\ttdefault}{cmtt}
-\fi
-\expandafter\ifx\csname T@X2\endcsname\relax
-  \expandafter\ifx\csname T@T2A\endcsname\relax
-  \else
-  % T2A was declared as font encoding
-    \substitutefont{T2A}{\rmdefault}{cmr}
-    \substitutefont{T2A}{\sfdefault}{cmss}
-    \substitutefont{T2A}{\ttdefault}{cmtt}
-  \fi
-\else
-% X2 was declared as font encoding
-  \substitutefont{X2}{\rmdefault}{cmr}
-  \substitutefont{X2}{\sfdefault}{cmss}
-  \substitutefont{X2}{\ttdefault}{cmtt}
-\fi
-
-
 \usepackage[Bjarne]{fncychap}
 \usepackage{sphinx}
 
@@ -66,13 +36,30 @@
 \urlstyle{same}
 \addto\captionsenglish{\renewcommand{\contentsname}{Contents:}}
 
-\usepackage{sphinxmessages}
+\addto\captionsenglish{\renewcommand{\figurename}{Fig.\@ }}
+\makeatletter
+\def\fnum@figure{\figurename\thefigure{}}
+\makeatother
+\addto\captionsenglish{\renewcommand{\tablename}{Table }}
+\makeatletter
+\def\fnum@table{\tablename\thetable{}}
+\makeatother
+\addto\captionsenglish{\renewcommand{\literalblockname}{Listing}}
+
+\addto\captionsenglish{\renewcommand{\literalblockcontinuedname}{continued from previous page}}
+\addto\captionsenglish{\renewcommand{\literalblockcontinuesname}{continues on next page}}
+\addto\captionsenglish{\renewcommand{\sphinxnonalphabeticalgroupname}{Non-alphabetical}}
+\addto\captionsenglish{\renewcommand{\sphinxsymbolsname}{Symbols}}
+\addto\captionsenglish{\renewcommand{\sphinxnumbersname}{Numbers}}
+
+\addto\extrasenglish{\def\pageautorefname{page}}
+
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 
 
-\title{io\_anim\_mvnx}
-\date{Aug 02, 2019}
+\title{io\_anim\_mvnx Documentation}
+\date{Aug 04, 2019}
 \release{0.1.0}
 \author{Andres FR}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -99,13 +86,21 @@
 \label{\detokenize{io_anim_mvnx:module-io_anim_mvnx.mvnx}}\label{\detokenize{io_anim_mvnx:io-anim-mvnx-mvnx-module}}\index{io\_anim\_mvnx.mvnx (module)@\spxentry{io\_anim\_mvnx.mvnx}\spxextra{module}}
 This module contains functionality concerning the adaption of the
 XSENS MVN-XML format into our Python setup.
-\begin{description}
-\item[{The official explanation can be found in section 14.4 of this document::}] \leavevmode
+The adaption tries to be as MVN-version-agnostc as possible. Still,
+it is possible to validate the file against a given schema.
+
+The official explanation can be found in section 14.4 of the
+\sphinxstyleemphasis{XSENS MVN User Manual}:
+\begin{quote}
+
 \sphinxurl{https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf}
+\end{quote}
 
-\end{description}
+A copy is stored in this package’s repository:
+\begin{quote}
 
-A copy is stored in this repository.
+\sphinxurl{https://github.com/andres-fr/blender-mvnx-io}
+\end{quote}
 
 The following section introduces more informally the contents of the imported
 MVN file and the way they can be accessed from Python:
@@ -149,80 +144,50 @@ for f in mmvn.mvnx.subject.footContactDefinition.iterchildren():
 
 \PYGZsh{} The bulk of the data is in the frames.
 frames\PYGZus{}metadata, config\PYGZus{}frames, normal\PYGZus{}frames = mmvn.extract\PYGZus{}frame\PYGZus{}info()
-
-\PYGZsh{} Metadata looks like this:
-\PYGZob{}\PYGZsq{}segmentCount\PYGZsq{}: \PYGZsq{}23\PYGZsq{}, \PYGZsq{}sensorCount\PYGZsq{}: \PYGZsq{}17\PYGZsq{}, \PYGZsq{}jointCount\PYGZsq{}: \PYGZsq{}22\PYGZsq{}\PYGZcb{}
-
-\PYGZsh{} config frames have the following fields:
-[\PYGZsq{}orientation\PYGZsq{}, \PYGZsq{}position\PYGZsq{}, \PYGZsq{}time\PYGZsq{}, \PYGZsq{}tc\PYGZsq{}, \PYGZsq{}ms\PYGZsq{}, \PYGZsq{}type\PYGZsq{}]
-
-\PYGZsh{} normal frames have the following fields:
-[\PYGZsq{}orientation\PYGZsq{}, \PYGZsq{}position\PYGZsq{}, \PYGZsq{}velocity\PYGZsq{}, \PYGZsq{}acceleration\PYGZsq{},
- \PYGZsq{}angularVelocity\PYGZsq{}, \PYGZsq{}angularAcceleration\PYGZsq{}, \PYGZsq{}footContacts\PYGZsq{},
- \PYGZsq{}sensorFreeAcceleration\PYGZsq{}, \PYGZsq{}sensorMagneticField\PYGZsq{}, \PYGZsq{}sensorOrientation\PYGZsq{},
- \PYGZsq{}jointAngle\PYGZsq{}, \PYGZsq{}jointAngleXZY\PYGZsq{}, \PYGZsq{}jointAngleErgo\PYGZsq{}, \PYGZsq{}centerOfMass\PYGZsq{}, \PYGZsq{}time\PYGZsq{},
- \PYGZsq{}index\PYGZsq{}, \PYGZsq{}tc\PYGZsq{}, \PYGZsq{}ms\PYGZsq{}, \PYGZsq{}type\PYGZsq{}]
 \end{sphinxVerbatim}
 
-The following fields contain metadata about the frame:
-\begin{quote}\begin{description}
-\item[{time}] \leavevmode
-ms since start (integer). It is close to
-\sphinxcode{\sphinxupquote{int(1000.0 * index / samplerate)}}, being equal most of the times and
-at most 1 milisecond away. It is neither truncated nor rounded, maybe it
-is given by the hardware.
+When calling \sphinxcode{\sphinxupquote{extract\_frame\_info}}, we expect specific fields to have
+specific datatypes. This is reflected In the globals:
 
-\item[{index}] \leavevmode
-starts with 0, +1 each normal frame
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{KNOWN\PYGZus{}STR\PYGZus{}FIELDS}\PYG{p}{,} \PYG{n}{KNOWN\PYGZus{}INT\PYGZus{}FIELDS}\PYG{p}{,} \PYG{n}{KNOWN\PYGZus{}FLOAT\PYGZus{}VEC\PYGZus{}FIELDS}
+\end{sphinxVerbatim}
 
-\item[{tc}] \leavevmode
-string like ‘02:23:28:164’
+These are passed as default parameters to the Mvnx constructor, but can be
+changed at will. The following exemplifies how the metadata could look like:
 
-\item[{ms}] \leavevmode
-unix timestamp like 1515983008686 (used to compute time)
+Metadata:
 
-\item[{type}] \leavevmode
-one of “identity”, “tpose”, “tpose-isb”, “normal”
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{p}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{segmentCount}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+m+mi}{23}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{sensorCount}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+m+mi}{17}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{jointCount}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+m+mi}{22}\PYG{p}{\PYGZcb{}}
+\end{sphinxVerbatim}
 
-\end{description}\end{quote}
+And this what fields would the non-normal frames have:
 
-\# The following fields are float vectors of the following dimensionality:
-\begin{quote}\begin{description}
-\item[{orientation}] \leavevmode
-\sphinxcode{\sphinxupquote{segmentCount*4 = 92}} Quaternion vector
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{orientation}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{position}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{time}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{tc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{ms}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{type}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]}
+\end{sphinxVerbatim}
 
-\item[{position, velocity, acceleration, angularVelocity, angularAcceleration}] \leavevmode
-\sphinxcode{\sphinxupquote{segmentCount*3 = 69}} 3D vectors in \sphinxcode{\sphinxupquote{(x,y,z)}} format
+As for the normal frames:
 
-\item[{footContacts}] \leavevmode
-\sphinxcode{\sphinxupquote{4}} 4D boolean vector
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{orientation}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{position}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{velocity}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{acceleration}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+ \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{angularVelocity}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{angularAcceleration}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{footContacts}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+ \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{sensorFreeAcceleration}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{sensorMagneticField}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{sensorOrientation}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+ \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{jointAngle}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{jointAngleXZY}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{jointAngleErgo}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{centerOfMass}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{time}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+ \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{index}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{tc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{ms}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{type}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]}
+\end{sphinxVerbatim}
 
-\item[{sensorFreeAcceleration, sensorMagneticField}] \leavevmode
-\sphinxcode{\sphinxupquote{sensorCount*3 = 51}}
+More information about the MVNX format can be found in section 14.4 of the
+already mentioned document:
+\begin{quote}
 
-\item[{sensorOrientation}] \leavevmode
-\sphinxcode{\sphinxupquote{sensorCount*4 = 68}}
-
-\item[{jointAngle, jointAngleXZY}] \leavevmode
-\sphinxcode{\sphinxupquote{jointCount*3 = 66}}
-
-\item[{jointAngleErgo}] \leavevmode
-\sphinxcode{\sphinxupquote{12}}
-
-\item[{centerOfMass}] \leavevmode
-\sphinxcode{\sphinxupquote{3}}
-
-\end{description}\end{quote}
-
-The units are SI for position, velocity and acceleration. Angular magnitudes
-are in radians except the \sphinxcode{\sphinxupquote{jointAngle...}} ones that are in degrees. All 3D
-vectors are in \sphinxcode{\sphinxupquote{(x,y,z)}} format, but the \sphinxcode{\sphinxupquote{jointAngle...}} ones differ in
-the Euler-rotation order by which they are computed (ZXY, standard or XZY,
-for shoulders usually).
+\sphinxurl{https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf}
+\end{quote}
 \index{Mvnx (class in io\_anim\_mvnx.mvnx)@\spxentry{Mvnx}\spxextra{class in io\_anim\_mvnx.mvnx}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.Mvnx}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx.}}\sphinxbfcode{\sphinxupquote{Mvnx}}}{\emph{mvnx\_path}, \emph{mvnx\_schema\_path=None}}{}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.Mvnx}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx.}}\sphinxbfcode{\sphinxupquote{Mvnx}}}{\emph{mvnx\_path}, \emph{mvnx\_schema\_path=None}, \emph{str\_fields=\{'tc'}, \emph{'type'\}}, \emph{int\_fields=\{'index'}, \emph{'jointCount'}, \emph{'ms'}, \emph{'segmentCount'}, \emph{'sensorCount'}, \emph{'time'\}}, \emph{float\_vec\_fields=\{'acceleration'}, \emph{'angularAcceleration'}, \emph{'angularVelocity'}, \emph{'centerOfMass'}, \emph{'jointAngle'}, \emph{'jointAngleErgo'}, \emph{'jointAngleXZY'}, \emph{'orientation'}, \emph{'position'}, \emph{'sensorFreeAcceleration'}, \emph{'sensorMagneticField'}, \emph{'sensorOrientation'}, \emph{'velocity'\}}}{}
 Bases: \sphinxcode{\sphinxupquote{object}}
 
 This class imports and adapts an XML file (expected to be in MVNX format)
@@ -252,22 +217,29 @@ The tuple \sphinxcode{\sphinxupquote{(frames\_metadata, config\_frames, normal\_
 \index{extract\_frames() (io\_anim\_mvnx.mvnx.Mvnx static method)@\spxentry{extract\_frames()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.Mvnx.extract_frames}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{extract\_frames}}}{\emph{mvnx}}{}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.Mvnx.extract_frames}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{extract\_frames}}}{\emph{mvnx}, \emph{str\_fields}, \emph{int\_fields}, \emph{fvec\_fields}}{}
 The bulk of the MVNX file is the \sphinxcode{\sphinxupquote{mvnx-\textgreater{}subject-\textgreater{}frames}} section.
 This function parses it and returns its information in a
-python-friendly format.
+python-friendly format, mainly via the \sphinxcode{\sphinxupquote{process\_dict}} function.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \sphinxstyleliteralstrong{\sphinxupquote{mvnx}} \textendash{} An XML tree, expected to be in MVNX format
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{fields}} (\sphinxstyleliteralemphasis{\sphinxupquote{collection}}) \textendash{} Collection of strings with field names that
+are converted to the specified type (fvec is a vector of floats).
+
+\end{itemize}
 
 \item[{Returns}] \leavevmode
 a tuple \sphinxcode{\sphinxupquote{(frames\_metadata, config\_frames, normal\_frames)}}
-where the metadata is a dict in the form \sphinxcode{\sphinxupquote{\{'segmentCount': '23',
-'sensorCount': '17', 'jointCount': '22'\}}}, the config frames are the
+where the metadata is a dict in the form \sphinxcode{\sphinxupquote{\{'segmentCount': 23,
+'sensorCount': 17, 'jointCount': 22\}}}, the config frames are the
 first 3 frame entries (expected to contain special config info)
-and the normal\_frames are all frames starting from the 4th. Both
-frame outputs are relational collections of dictionaries that can be
-formatted into tabular form.
+and the normal\_frames are all frames starting from the 4th.
+Fields found in the given int and vec field lists will be converted
+and the rest will remain as XML nodes.
 
 \end{description}\end{quote}
 
@@ -304,6 +276,30 @@ ordered by id (starting at 1 and incrementing +1).
 
 \end{fulllineitems}
 
+\index{process\_dict() (in module io\_anim\_mvnx.mvnx)@\spxentry{process\_dict()}\spxextra{in module io\_anim\_mvnx.mvnx}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.process_dict}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx.}}\sphinxbfcode{\sphinxupquote{process\_dict}}}{\emph{d}, \emph{str\_fields}, \emph{int\_fields}, \emph{fvec\_fields}}{}~\begin{quote}\begin{description}
+\item[{Returns}] \leavevmode
+a copy of the given dict where the values (expected strings)
+whose keys are in the specified fields are converted to the specified
+type. E.g. If \sphinxcode{\sphinxupquote{int\_fields}} contains the \sphinxcode{\sphinxupquote{index}} string and the given
+dict contains the \sphinxcode{\sphinxupquote{index}} key, the corresponding value will be
+converted via \sphinxcode{\sphinxupquote{int()}}.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{str\_to\_vec() (in module io\_anim\_mvnx.mvnx)@\spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.mvnx}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx.str_to_vec}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx.}}\sphinxbfcode{\sphinxupquote{str\_to\_vec}}}{\emph{x}}{}
+Converts a node with a text like ‘1.23, 2.34 …’ into a list
+like {[}1.23, 2.34, …{]}
+
+\end{fulllineitems}
+
 
 
 \section{io\_anim\_mvnx.mvnx\_import module}
@@ -312,6 +308,20 @@ This module contains the required functionality to import an MVNX file as a
 moving set of bones into Blender.
 
 It allows for different options regarding their connectivity, scale…
+
+The general workflow is documented in section 5 of the \sphinxstyleemphasis{Moven User Manual}:
+\begin{quote}
+
+\sphinxurl{http://www.cs.unc.edu/Research/stc/FAQs/Xsens/Moven/Moven\%20User\%20Manual.pdf}
+\end{quote}
+
+A copy is stored in this package’s repository:
+\begin{quote}
+
+\sphinxurl{https://github.com/andres-fr/blender-mvnx-io}
+\end{quote}
+
+See the specific docstrings and code commentary for more details.
 \index{global\_to\_inherited\_quats() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{global\_to\_inherited\_quats()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
 
 \begin{fulllineitems}
@@ -341,10 +351,8 @@ to its parent. For that, it suffices the following calculation:
 \end{sphinxVerbatim}
 
 \begin{sphinxadmonition}{warning}{Warning:}
-This function assumes that the joints are given topologically sorted,
-i.e. that all parents prior to the current connection have been already
-visited when iterating the joint list from left to right (starting with
-the roots, and going down the leafs in order).
+This function assumes that all the input quaternion orientations are
+given with respect to the same global reference.
 \end{sphinxadmonition}
 
 \end{fulllineitems}
@@ -352,7 +360,57 @@ the roots, and going down the leafs in order).
 \index{load\_mvnx\_into\_blender() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{load\_mvnx\_into\_blender()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx_import.load_mvnx_into_blender}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx\_import.}}\sphinxbfcode{\sphinxupquote{load\_mvnx\_into\_blender}}}{\emph{context}, \emph{filepath}, \emph{mvnx\_schema\_path=None}, \emph{connectivity='CONNECTED'}, \emph{scale=1.0}, \emph{report=\textless{}built-in function print\textgreater{}}, \emph{frame\_start=0.0}, \emph{inherit\_rotations=True}, \emph{add\_identity\_pose=True}, \emph{add\_t\_pose=True}}{}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.mvnx_import.load_mvnx_into_blender}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{io\_anim\_mvnx.mvnx\_import.}}\sphinxbfcode{\sphinxupquote{load\_mvnx\_into\_blender}}}{\emph{context}, \emph{filepath}, \emph{mvnx\_schema\_path=None}, \emph{connectivity='CONNECTED'}, \emph{scale=1.0}, \emph{report=\textless{}built-in function print\textgreater{}}, \emph{frame\_start=0.0}, \emph{inherit\_rotations=True}, \emph{add\_identity\_pose=True}, \emph{add\_t\_pose=True}, \emph{verbose=True}}{}~\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{context}} \textendash{} A Blender context like bpy.context
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{filepath}} \textendash{} Path expected to point to an MVNX file (XML)
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{mvnx\_schema\_path}} \textendash{} Optional path to a validation schema for the MVNX
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{connectivity}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} One of \sphinxcode{\sphinxupquote{{[}'CONNECTED', 'INDIVIDUAL'{]}}}. If
+individual, all bones will have no parent and no children, and their
+positions and rotations will be loaded independently from the others.
+If connected, the relations defined in the MVNX will be regarded to form
+a tree of bones, where only the tree roots will have a position. All
+bones will in any case have angles: see \sphinxcode{\sphinxupquote{inherit\_rotations}} for more
+information.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{inherit\_rotations}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} If true, rotating a bone will propagate
+the same rotation to all its children, so the rotations are expressed
+with respect to the parent. Otherwise the rotations are absolute and
+rotating a bone will displace the children but their orientation won’t
+change. Note that in both modes the imported animation will look
+identical.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{add\_identity\_pose}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} If true, the ‘identity’ frame (zero
+rotations) is added at the beginning of the sequence.
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{add\_t\_pose}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} If true, the ‘tpose’ frame is added at the
+beginning of the sequence (but after the identity if given).
+
+\item {} 
+\sphinxstyleliteralstrong{\sphinxupquote{verbose}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} If true, prints some information about the process
+to the terminal.
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+The main routine in this module: given the MVNX information and some other
+configurations, it creates a set of bones in Blender (so-called \sphinxstyleemphasis{Armature})
+that will have the shape and perform the sequence specified in the MVNX.
+The function returns a pointer to the armature, whose name will be the same
+as the MVNX file imported (plus potentially extra ‘.XYZ’ digits if a file
+is imported multiple times).
+
 \end{fulllineitems}
 
 \index{set\_bone\_head\_and\_tail() (in module io\_anim\_mvnx.mvnx\_import)@\spxentry{set\_bone\_head\_and\_tail()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}}
@@ -390,7 +448,7 @@ be multiplied.
 
 For a given bone, this function reads the information of its parent and,
 given some MVNX data and assumptions, calculates its head and tail
-positions.
+positions. It is also responsible of rescaling the armature.
 
 \begin{sphinxadmonition}{warning}{Warning:}\begin{description}
 \item[{This function assumes the following:}] \leavevmode\begin{enumerate}
@@ -439,6 +497,12 @@ Bases: \sphinxcode{\sphinxupquote{bpy\_types.Operator}}, \sphinxcode{\sphinxupqu
 
 Load an MVNX motion capture file. This Operator is heavily inspired in the
 oficially supported ImportBVH.
+\index{VERBOSE\_IMPORT (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{VERBOSE\_IMPORT}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.VERBOSE_IMPORT}}\pysigline{\sphinxbfcode{\sphinxupquote{VERBOSE\_IMPORT}}\sphinxbfcode{\sphinxupquote{ = True}}}
+\end{fulllineitems}
+
 \index{bl\_idname (io\_anim\_mvnx.operators.ImportMVNX attribute)@\spxentry{bl\_idname}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}}
 
 \begin{fulllineitems}
@@ -469,7 +533,12 @@ oficially supported ImportBVH.
 \phantomsection\label{\detokenize{io_anim_mvnx:io_anim_mvnx.operators.ImportMVNX.execute}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{execute}}}{\emph{context}}{}
 Passes the properties captured by the UI to the load\_mvnx\_into\_blender
 function.
-:returns: \sphinxcode{\sphinxupquote{\{"FINISHED"\}}} if everything went OK.
+\begin{quote}\begin{description}
+\item[{Returns}] \leavevmode
+\sphinxcode{\sphinxupquote{\{'FINISHED'\}}} if everything went OK, \sphinxcode{\sphinxupquote{\{'CANCELLED'\}}}
+otherwise.
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 

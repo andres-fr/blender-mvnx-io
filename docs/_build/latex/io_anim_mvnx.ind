@@ -5,7 +5,7 @@
 \let\spxextra \sphinxstyleindexextra
 
   \bigletter A
-  \item \spxentry{ArgumentParserForBlender}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{5}
+  \item \spxentry{ArgumentParserForBlender}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{6}
 
   \indexspace
   \bigletter B
@@ -16,13 +16,13 @@
 		\hyperpage{5}
   \item \spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}, \hyperpage{5}
   \item \spxentry{bl\_rna}\spxextra{io\_anim\_mvnx.utils.ImportFilesCollection attribute}, 
-		\hyperpage{6}
+		\hyperpage{7}
 
   \indexspace
   \bigletter E
-  \item \spxentry{execute()}\spxextra{io\_anim\_mvnx.operators.ImportMVNX method}, \hyperpage{5}
-  \item \spxentry{export()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
-  \item \spxentry{extract\_frame\_info()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
+  \item \spxentry{execute()}\spxextra{io\_anim\_mvnx.operators.ImportMVNX method}, \hyperpage{6}
+  \item \spxentry{export()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{2}
+  \item \spxentry{extract\_frame\_info()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{2}
   \item \spxentry{extract\_frames()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx static method}, 
 		\hyperpage{3}
   \item \spxentry{extract\_joints()}\spxextra{io\_anim\_mvnx.mvnx.Mvnx method}, \hyperpage{3}
@@ -31,30 +31,30 @@
   \indexspace
   \bigletter G
   \item \spxentry{get\_argv\_after\_doubledash()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}, 
-		\hyperpage{5}
+		\hyperpage{6}
   \item \spxentry{global\_to\_inherited\_quats()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}, 
 		\hyperpage{3}
 
   \indexspace
   \bigletter I
-  \item \spxentry{ImportFilesCollection}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{6}
+  \item \spxentry{ImportFilesCollection}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{7}
   \item \spxentry{ImportMVNX}\spxextra{class in io\_anim\_mvnx.operators}, \hyperpage{5}
   \item \spxentry{io\_anim\_mvnx}\spxextra{module}, \hyperpage{8}
   \item \spxentry{io\_anim\_mvnx.mvnx}\spxextra{module}, \hyperpage{1}
   \item \spxentry{io\_anim\_mvnx.mvnx\_import}\spxextra{module}, \hyperpage{3}
   \item \spxentry{io\_anim\_mvnx.operators}\spxextra{module}, \hyperpage{5}
-  \item \spxentry{io\_anim\_mvnx.utils}\spxextra{module}, \hyperpage{5}
-  \item \spxentry{is\_number()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{7}
+  \item \spxentry{io\_anim\_mvnx.utils}\spxextra{module}, \hyperpage{6}
+  \item \spxentry{is\_number()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{8}
 
   \indexspace
   \bigletter K
   \item \spxentry{KEYMAP\_NAME}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
-		\hyperpage{6}
+		\hyperpage{7}
   \item \spxentry{KEYMAP\_REGION\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
-		\hyperpage{6}
+		\hyperpage{7}
   \item \spxentry{KEYMAP\_SPACE\_TYPE}\spxextra{io\_anim\_mvnx.utils.KeymapManager attribute}, 
-		\hyperpage{6}
-  \item \spxentry{KeymapManager}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{6}
+		\hyperpage{7}
+  \item \spxentry{KeymapManager}\spxextra{class in io\_anim\_mvnx.utils}, \hyperpage{7}
 
   \indexspace
   \bigletter L
@@ -63,7 +63,7 @@
 
   \indexspace
   \bigletter M
-  \item \spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{7}
+  \item \spxentry{make\_timestamp()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{8}
   \item \spxentry{Mvnx}\spxextra{class in io\_anim\_mvnx.mvnx}, \hyperpage{2}
 
   \indexspace
@@ -74,27 +74,34 @@
   \bigletter P
   \item \spxentry{parse\_args()}\spxextra{io\_anim\_mvnx.utils.ArgumentParserForBlender method}, 
 		\hyperpage{6}
+  \item \spxentry{process\_dict()}\spxextra{in module io\_anim\_mvnx.mvnx}, \hyperpage{3}
 
   \indexspace
   \bigletter R
-  \item \spxentry{register()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{8}
-  \item \spxentry{register()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}, \hyperpage{6}
+  \item \spxentry{register()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{9}
+  \item \spxentry{register()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}, \hyperpage{7}
   \item \spxentry{register()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}, 
-		\hyperpage{7}
-  \item \spxentry{resolve\_path()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{7}
-  \item \spxentry{rot\_euler\_degrees()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{7}
+		\hyperpage{8}
+  \item \spxentry{resolve\_path()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{8}
+  \item \spxentry{rot\_euler\_degrees()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{8}
 
   \indexspace
   \bigletter S
   \item \spxentry{set\_bone\_head\_and\_tail()}\spxextra{in module io\_anim\_mvnx.mvnx\_import}, 
 		\hyperpage{4}
-  \item \spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{7}
+  \item \spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.mvnx}, \hyperpage{3}
+  \item \spxentry{str\_to\_vec()}\spxextra{in module io\_anim\_mvnx.utils}, \hyperpage{8}
 
   \indexspace
   \bigletter U
-  \item \spxentry{unregister()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{8}
+  \item \spxentry{unregister()}\spxextra{in module io\_anim\_mvnx}, \hyperpage{9}
   \item \spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.KeymapManager method}, \hyperpage{7}
   \item \spxentry{unregister()}\spxextra{io\_anim\_mvnx.utils.OperatorToMenuManager method}, 
-		\hyperpage{7}
+		\hyperpage{8}
+
+  \indexspace
+  \bigletter V
+  \item \spxentry{VERBOSE\_IMPORT}\spxextra{io\_anim\_mvnx.operators.ImportMVNX attribute}, 
+		\hyperpage{5}
 
 \end{sphinxtheindex}

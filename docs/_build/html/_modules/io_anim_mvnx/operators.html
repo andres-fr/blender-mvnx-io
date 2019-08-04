@@ -162,6 +162,9 @@
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
 
+<span class="kn">import</span> <span class="nn">lxml</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="c1">#</span>
 <span class="c1"># from mathutils import Vector  # mathutils is a blender package</span>
 <span class="kn">import</span> <span class="nn">bpy</span>
 <span class="c1">#</span>
@@ -186,6 +189,8 @@
     <span class="n">bl_idname</span> <span class="o">=</span> <span class="s2">&quot;import_anim.mvnx&quot;</span>
     <span class="n">bl_label</span> <span class="o">=</span> <span class="s2">&quot;Import MVNX&quot;</span>
     <span class="n">bl_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;REGISTER&#39;</span><span class="p">,</span> <span class="s1">&#39;UNDO&#39;</span><span class="p">}</span>
+
+    <span class="n">VERBOSE_IMPORT</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># print process info while importing</span>
 
     <span class="c1"># filename_ext = &quot;.mvnx&quot;</span>
     <span class="n">filter_glob</span><span class="p">:</span> <span class="n">StringProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;*.mvnx&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;HIDDEN&#39;</span><span class="p">})</span>
@@ -244,20 +249,28 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Passes the properties captured by the UI to the load_mvnx_into_blender</span>
 <span class="sd">        function.</span>
-<span class="sd">        :returns: ``{&quot;FINISHED&quot;}`` if everything went OK.</span>
+
+<span class="sd">        :returns: ``{&#39;FINISHED&#39;}`` if everything went OK, ``{&#39;CANCELLED&#39;}``</span>
+<span class="sd">          otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># as_keywords returns a copy of the properties as a dict.</span>
         <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_keywords</span><span class="p">(</span><span class="n">ignore</span><span class="o">=</span><span class="p">(</span>
-            <span class="c1"># &quot;axis_forward&quot;, &quot;axis_up&quot;,</span>
             <span class="s2">&quot;filter_glob&quot;</span><span class="p">,))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_schema_path</span><span class="p">:</span>
             <span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;mvnx_schema_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># afwd = self.axis_forward</span>
-        <span class="c1"># aup = self.axis_up</span>
-        <span class="c1"># global_mat = axis_conversion(from_forward=afwd, from_up=aup).to_4x4()</span>
-        <span class="c1"># keywords[&quot;global_matrix&quot;] = global_mat</span>
-        <span class="n">load_mvnx_into_blender</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="o">**</span><span class="n">keywords</span><span class="p">)</span>
-        <span class="k">return</span><span class="p">({</span><span class="s2">&quot;FINISHED&quot;</span><span class="p">})</span></div></div>
+        <span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;verbose&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERBOSE_IMPORT</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">load_mvnx_into_blender</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="o">**</span><span class="n">keywords</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;FINISHED&#39;</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">DocumentInvalid</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">({</span><span class="s1">&#39;ERROR&#39;</span><span class="p">},</span>
+                            <span class="s2">&quot;MNVX didn&#39;t pass given validation schema. &quot;</span> <span class="o">+</span>
+                            <span class="s2">&quot;Remove schema path to bypass validation.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">({</span><span class="s1">&#39;ERROR&#39;</span><span class="p">},</span> <span class="s2">&quot;Something went wrong: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;CANCELLED&#39;</span><span class="p">}</span></div></div>
 </pre></div>
 
            </div>
