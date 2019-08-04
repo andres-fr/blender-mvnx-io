@@ -323,13 +323,15 @@
 <span class="sd">      beginning of the sequence (but after the identity if given).</span>
 <span class="sd">    :param bool verbose: If true, prints some information about the process</span>
 <span class="sd">      to the terminal.</span>
+<span class="sd">    :returns: A tuple ``(arm_ob, mvnx)``, where mvnx is a pointer to the</span>
+<span class="sd">      Mvnx instance (basically an objectified XML file with extra</span>
+<span class="sd">      functionality), and arm_ob is a pointer to the created Blender Armature</span>
+<span class="sd">      (whose name will be the same as the MVNX file, plus potentially extra</span>
+<span class="sd">      &#39;.XYZ&#39; digits if a file is imported multiple times).</span>
 
 <span class="sd">    The main routine in this module: given the MVNX information and some other</span>
 <span class="sd">    configurations, it creates a set of bones in Blender (so-called *Armature*)</span>
 <span class="sd">    that will have the shape and perform the sequence specified in the MVNX.</span>
-<span class="sd">    The function returns a pointer to the armature, whose name will be the same</span>
-<span class="sd">    as the MVNX file imported (plus potentially extra &#39;.XYZ&#39; digits if a file</span>
-<span class="sd">    is imported multiple times).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># sanity check</span>
     <span class="k">assert</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Scale has to be positive!&quot;</span>

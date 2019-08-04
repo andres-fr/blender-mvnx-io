@@ -412,7 +412,7 @@ given with respect to the same global reference.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>context</strong> – A Blender context like bpy.context</li>
 <li><strong>filepath</strong> – Path expected to point to an MVNX file (XML)</li>
 <li><strong>mvnx_schema_path</strong> – Optional path to a validation schema for the MVNX</li>
@@ -438,14 +438,18 @@ to the terminal.</li>
 </ul>
 </td>
 </tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal notranslate"><span class="pre">(arm_ob,</span> <span class="pre">mvnx)</span></code>, where mvnx is a pointer to the
+Mvnx instance (basically an objectified XML file with extra
+functionality), and arm_ob is a pointer to the created Blender Armature
+(whose name will be the same as the MVNX file, plus potentially extra
+‘.XYZ’ digits if a file is imported multiple times).</p>
+</td>
+</tr>
 </tbody>
 </table>
 <p>The main routine in this module: given the MVNX information and some other
 configurations, it creates a set of bones in Blender (so-called <em>Armature</em>)
-that will have the shape and perform the sequence specified in the MVNX.
-The function returns a pointer to the armature, whose name will be the same
-as the MVNX file imported (plus potentially extra ‘.XYZ’ digits if a file
-is imported multiple times).</p>
+that will have the shape and perform the sequence specified in the MVNX.</p>
 </dd></dl>
 
 <dl class="function">

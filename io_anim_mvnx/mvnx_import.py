@@ -171,13 +171,15 @@ def load_mvnx_into_blender(
       beginning of the sequence (but after the identity if given).
     :param bool verbose: If true, prints some information about the process
       to the terminal.
+    :returns: A tuple ``(arm_ob, mvnx)``, where mvnx is a pointer to the
+      Mvnx instance (basically an objectified XML file with extra
+      functionality), and arm_ob is a pointer to the created Blender Armature
+      (whose name will be the same as the MVNX file, plus potentially extra
+      '.XYZ' digits if a file is imported multiple times).
 
     The main routine in this module: given the MVNX information and some other
     configurations, it creates a set of bones in Blender (so-called *Armature*)
     that will have the shape and perform the sequence specified in the MVNX.
-    The function returns a pointer to the armature, whose name will be the same
-    as the MVNX file imported (plus potentially extra '.XYZ' digits if a file
-    is imported multiple times).
     """
     # sanity check
     assert scale > 0, "Scale has to be positive!"
@@ -393,4 +395,4 @@ def load_mvnx_into_blender(
     report({'INFO'}, "Loaded %s (%d frames)" % (mvnx_filename, num_frames))
     if verbose:
         print("Loaded %s (%d frames)" % (mvnx_filename, num_frames))
-    return arm_ob
+    return arm_ob, mvnx

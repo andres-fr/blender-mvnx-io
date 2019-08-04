@@ -402,14 +402,18 @@ to the terminal.
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+A tuple \sphinxcode{\sphinxupquote{(arm\_ob, mvnx)}}, where mvnx is a pointer to the
+Mvnx instance (basically an objectified XML file with extra
+functionality), and arm\_ob is a pointer to the created Blender Armature
+(whose name will be the same as the MVNX file, plus potentially extra
+‘.XYZ’ digits if a file is imported multiple times).
+
 \end{description}\end{quote}
 
 The main routine in this module: given the MVNX information and some other
 configurations, it creates a set of bones in Blender (so-called \sphinxstyleemphasis{Armature})
 that will have the shape and perform the sequence specified in the MVNX.
-The function returns a pointer to the armature, whose name will be the same
-as the MVNX file imported (plus potentially extra ‘.XYZ’ digits if a file
-is imported multiple times).
 
 \end{fulllineitems}
 
