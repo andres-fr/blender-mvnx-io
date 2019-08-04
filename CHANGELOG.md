@@ -27,4 +27,4 @@ All notable changes to this project will be documented in this file.
 * CI with blender?
 * Adapt skeleton depending on config like mvnx.subject.attrib["configuration"] = "UpperBody"
 * Global rotation matrix?
-* Better handling of time scale/precision?
+* Is there a better handling of time scale/precision?
