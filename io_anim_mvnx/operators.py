@@ -10,6 +10,7 @@ other UI elements.
 
 __author__ = "Andres FR"
 
+import os
 import lxml
 import traceback
 #
@@ -28,6 +29,21 @@ from .utils import resolve_path  # , ImportFilesCollection
 # ## IMPORT OPERATOR
 # #############################################################################
 
+class MvnxSchemaManager_0_1_0:
+    """
+    """
+    SCHEMATA_PATH = resolve_path("data")
+
+    @classmethod
+    def get_mvnx_schemata(cls):
+        """
+        """
+        xsd_names = [(os.path.join(cls.SCHEMATA_PATH, x), x, "")
+                     for x in os.listdir(cls.SCHEMATA_PATH)
+                     if x.endswith("xsd")]
+        result = (("NONE", "None", ""),) + tuple(xsd_names)
+        return result
+
 class ImportMVNX(bpy.types.Operator, ImportHelper):
     """
     Load an MVNX motion capture file. This Operator is heavily inspired in the
@@ -38,16 +54,24 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
     bl_label = "Import MVNX"
     bl_options = {'REGISTER', 'UNDO'}
 
+    MVNX_SCHEMA_MANAGER = MvnxSchemaManager_0_1_0
     VERBOSE_IMPORT = True  # print process info while importing
 
     # filename_ext = ".mvnx"
     filter_glob: StringProperty(default="*.mvnx", options={'HIDDEN'})
 
-    mvnx_schema_path: StringProperty(
-        subtype="FILE_PATH",
-        default=resolve_path("data", "mvnx_schema_mpiea.xsd"),
-        name="MVNX Schema path",
-        description="Validation schema for the MVNX file (optional)"
+    # mvnx_schema_path: StringProperty(
+    #     subtype="FILE_PATH",
+    #     default=resolve_path("data", "mvnx_schema_mpiea.xsd"),
+    #     name="MVNX Schema path",
+    #     description="Validation schema for the MVNX file (optional)"
+    # )
+    mvnx_schema_path: EnumProperty(
+        items = MvnxSchemaManager_0_1_0.get_mvnx_schemata(),
+        name="Validation Schema for the MVNX file (optional)",
+        description=("Validation schema for the MVNX file, located in " +
+                     MvnxSchemaManager_0_1_0.SCHEMATA_PATH),
+        default="NONE",
     )
 
     connectivity: EnumProperty(
@@ -104,6 +128,7 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         # as_keywords returns a copy of the properties as a dict.
         keywords = self.as_keywords(ignore=(
             "filter_glob",))
+        print(">>>>>>>>>>>>>", self.mvnx_schema_path)
         if not self.mvnx_schema_path:
             keywords["mvnx_schema_path"] = None
         keywords["verbose"] = self.VERBOSE_IMPORT

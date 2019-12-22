@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:mvnx="http://www.xsens.com/mvn/mvnx" targetNamespace="http://www.xsens.com/mvn/mvnx" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"> 
+
+	<xsd:element name="mvnx">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="mvnx:mvn"/>
+				<xsd:element ref="mvnx:comment"/>
+				<xsd:element ref="mvnx:subject"/>
+				<xsd:element ref="mvnx:securityCode"/>
+			</xsd:sequence>
+			<xsd:attribute name="version" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="mvn">
+		<xsd:complexType>
+			<xsd:attribute name="version" type="xsd:string" use="required"/>
+			<xsd:attribute name="build" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="comment" type="xsd:string">
+	</xsd:element>
+	 
+	<xsd:element name="subject">
+		<xsd:complexType>
+			<xsd:sequence>
+			<xsd:element ref="mvnx:comment"/>
+			<xsd:element ref="mvnx:segments"/>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element ref="mvnx:sensors"/>
+			</xsd:sequence>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element ref="mvnx:joints"/>
+			</xsd:sequence>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element ref="mvnx:ergonomicJointAngles"/>
+			</xsd:sequence>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element ref="mvnx:footContactDefinition"/>
+			</xsd:sequence>
+			<xsd:element ref="mvnx:frames"/>
+			</xsd:sequence>
+			<xsd:attribute name="label" type="xsd:string" use="required"/>
+			<xsd:attribute name="torsoColor" type="xsd:string" use="required"/>
+			<xsd:attribute name="frameRate" type="xsd:nonNegativeInteger" use="required"/>
+			<xsd:attribute name="segmentCount" type="xsd:string" use="required"/>
+			<xsd:attribute name="recDate" type="xsd:string" use="required"/>
+			<xsd:attribute name="originalFilename" type="xsd:string" use="required"/>
+			<xsd:attribute name="configuration" type="xsd:string" use="required"/>
+			<xsd:attribute name="userScenario" type="xsd:string" use="required"/>
+			<xsd:attribute name="processingQuality" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="securityCode">
+		<xsd:complexType>
+			<xsd:attribute name="code" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="sensors">
+		<xsd:complexType>
+			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="mvnx:sensor"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="sensor">
+		<xsd:complexType>
+			<xsd:attribute name="label" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="joints">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:joint"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="joint">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="mvnx:connector1"/>
+				<xsd:element ref="mvnx:connector2"/>
+			</xsd:sequence>
+			<xsd:attribute name="label" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="ergonomicJointAngles">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:ergonomicJointAngle"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="ergonomicJointAngle">
+		<xsd:complexType>
+			<xsd:attribute name="label" type="xsd:string" use="required"/>
+			<xsd:attribute name="index" type="xsd:nonNegativeInteger" use="required"/>
+			<xsd:attribute name="parentSegment" type="xsd:string" use="required"/>
+			<xsd:attribute name="childSegment" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="footContactDefinition">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:contactDefinition"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="contactDefinition">
+		<xsd:complexType>
+			<xsd:attribute name="label" type="xsd:string" use="required"/>
+			<xsd:attribute name="index" type="xsd:nonNegativeInteger" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="frames">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:frame"/>
+			</xsd:sequence>
+			<xsd:attribute name="segmentCount" type="xsd:string" use="required"/>
+			<xsd:attribute name="sensorCount" type="xsd:string"/>
+			<xsd:attribute name="jointCount" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="frame">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="mvnx:orientation"/>
+				<xsd:element ref="mvnx:position"/>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:velocity"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:acceleration"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:angularVelocity"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:angularAcceleration"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:footContacts"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:sensorAcceleration"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:sensorFreeAcceleration"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:sensorAngularVelocity"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:sensorMagneticField"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:sensorOrientation"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:jointAngle"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:jointAngleXZY"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:jointAngleErgo"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:jointAngleErgoXZY"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:centerOfMass"/>
+				</xsd:sequence>
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="mvnx:marker"/>
+				</xsd:sequence>
+			</xsd:sequence>
+			<xsd:attribute name="time" type="xsd:string" use="required"/>
+			<!-- <xsd:attribute name="index" type="xsd:string" use="required"/> -->
+			<xsd:attribute name="index" type="xsd:string"/>
+			<xsd:attribute name="tc" type="xsd:string"/>
+			<xsd:attribute name="ms" type="xsd:string"/>
+			<xsd:attribute name="type" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:simpleType name="notEmptyString">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="notEmptyStringNoSpecialChars">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="([a-zA-Z0-9])*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="pos_b" type="mvnx:notEmptyString">
+	</xsd:element>	
+
+	<xsd:element name="pos_s" type="mvnx:notEmptyString">
+	</xsd:element>	
+
+	<xsd:element name="point">
+		<xsd:complexType>
+			<xsd:choice>
+				<xsd:sequence>
+					<xsd:element ref="mvnx:pos_b"/>
+				</xsd:sequence>
+				<xsd:sequence>
+					<xsd:element ref="mvnx:pos_s"/>
+				</xsd:sequence>
+			</xsd:choice>
+			<xsd:attribute name="label" type="mvnx:notEmptyStringNoSpecialChars" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="points">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:point"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="segment">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="mvnx:points"/>
+			</xsd:sequence>
+			<xsd:attribute name="label" type="mvnx:notEmptyStringNoSpecialChars" use="required"/>
+			<xsd:attribute name="id" type="xsd:nonNegativeInteger" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="segments">
+		<xsd:complexType>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element ref="mvnx:segment"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="connector1" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="connector2" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="orientation" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="position" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="velocity" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="acceleration" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="angularVelocity" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="footContacts" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="angularAcceleration" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="sensorAcceleration" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="sensorFreeAcceleration" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="sensorAngularVelocity" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="sensorMagneticField" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="sensorOrientation" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="jointAngle" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="jointAngleXZY" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="jointAngleErgo" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="jointAngleErgoXZY" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="centerOfMass" type="mvnx:notEmptyString">
+	</xsd:element>
+
+	<xsd:element name="marker" type="mvnx:notEmptyString">
+	</xsd:element>
+
+</xsd:schema>
