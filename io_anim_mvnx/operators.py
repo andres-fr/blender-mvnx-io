@@ -129,7 +129,7 @@ class ImportMVNX(bpy.types.Operator, ImportHelper):
         keywords = self.as_keywords(ignore=(
             "filter_glob",))
         print(">>>>>>>>>>>>>", self.mvnx_schema_path)
-        if not self.mvnx_schema_path:
+        if self.mvnx_schema_path == "NONE":
             keywords["mvnx_schema_path"] = None
         keywords["verbose"] = self.VERBOSE_IMPORT
         try:
