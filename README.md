@@ -5,7 +5,11 @@ This repository hosts an addon for Input of MVNX MoCap data in Blender 2.80, as 
 
 ## Installation:
 
-As any other addon, simply add the `io_anim_mvnx` folder to any of Blender's `addon` locations, and activate it to get started.
+As any other addon, simply add the `io_anim_mvnx` folder to any of Blender's `addon` locations, and activate it to get started. A simple way to do so is to zip the whole add-on folder, i.e. create a file ``io_anim_mvnx.zip`` with the add-on folder inside it, and then inside blender load it via ``Edit->Preferences->Add-Ons->Install``.
+
+If any further dependecies are required, they can be installed following the steps provided [here](https://blender.stackexchange.com/a/140343/70695).
+
+
 
 
 ----------------------------
